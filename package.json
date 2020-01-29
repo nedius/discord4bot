@@ -1,0 +1,32 @@
+{
+  "name": "discord4bot",
+  "version": "1.0.0",
+  "description": "A minimal discord client for bot",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "build": "electron-packager ."
+  },
+  "repository": "https://github.com/nedius/discord4bot",
+  "keywords": [
+    "Electron",
+    "discord",
+    "bot"
+  ],
+  "author": "nedius",
+  "license": "CC0-1.0",
+  "devDependencies": {
+    "electron": "^7.1.7"
+  },
+  "build": {
+    "files": [
+      "!npm run build.bat",
+      "!npm start.bat"
+    ]
+  },
+  "dependencies": {
+    "bufferutil": "^4.0.1",
+    "discord.js": "^11.5.1",
+    "electron-store": "^5.1.0"
+  }
+}

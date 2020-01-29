@@ -1,0 +1,10 @@
+# dependencies
+node_modules/
+
+# production
+discord4bot-win32-x64/
+
+# misc
+npm run build.bat
+npm start.bat
+discord4bot - appdata.lnk
