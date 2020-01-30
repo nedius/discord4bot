@@ -19,10 +19,15 @@ client.on('ready', () => {
         document.getElementById('gd/' + guild.id).addEventListener('click', selectGuild);
     });
 
-    if(store.has('lastGuild'))
-        document.getElementById(store.get('lastGuild')).click();
-    if(store.has('lastChannel'))
-        document.getElementById(store.get('lastChannel')).click();
+    try {
+        if(store.has('lastGuild'))
+            document.getElementById(store.get('lastGuild')).click();
+        if(store.has('lastChannel'))
+            document.getElementById(store.get('lastChannel')).click();
+    } catch (error) {
+        console.log(error);
+    }
+    
     goToApp();
 });
 
