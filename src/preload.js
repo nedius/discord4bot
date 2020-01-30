@@ -161,9 +161,15 @@ window.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  var btnAppAuthor = null;
+  var btnAppAuthor = null,
+      btnAppAuthorClicked = false;
   document.getElementById('btnAppAuthor').addEventListener('click', function(){
     let taskbar = document.getElementById(`taskbar`);
+
+    if(btnAppAuthorClicked)
+      return;
+    else
+      btnAppAuthorClicked = true;
 
     clearTimeout(btnAppAuthor);
     taskbar.classList.remove('showTask')
@@ -172,6 +178,7 @@ window.addEventListener('DOMContentLoaded', () => {
 
     btnAppAuthor = setTimeout(() => {
       taskbar.classList.remove('showTask');
+      btnAppAuthorClicked = false;
     }, 2000 - 50);
   });
   // https://fleme.nedius.com
@@ -302,3 +309,15 @@ function logout(){
 function hasEncrypted(string){
   return string.match(tokenRegex);
 }
+
+// const myContextMenu = remote.Menu.buildFromTemplate ([
+//   { type: 'separator' },
+//   { label: 'nothing here'},
+//   { type: 'separator' },
+//   // { label: 'Start', click() { console.log('Start the app') } }
+//   ])
+  
+//   window.addEventListener('contextmenu', (event) => {
+//    event.preventDefault();
+//    myContextMenu.popup();
+// })

@@ -44,7 +44,7 @@
 
                         <div class="listItem">
                           <div class="wrapper">
-                            <img class="guildImage" src="./img/placeholder.png" alt="guild">
+                            <img class="guildImage" draggable="false" src="./img/placeholder.png" alt="guild">
                           </div>
                         </div>
 
@@ -226,7 +226,7 @@
                         <div class="panels">
                           <div class="usernameContainer">
                             <div class="avatarWrapper">
-                              <img class="guildImage" src="./img/placeholder.png" alt="guild image">
+                              <img id="userImage" draggable="false" class="guildImage" src="./img/placeholder.png" alt="guild image">
                             </div>
                             <div class="nameTag">
                               <div class="nameTagUsername">bot</div>
@@ -267,7 +267,26 @@
                           </div>
                         </div>
                         <div class="chatRoot">
-                          <div id="chatContent" class="chatContent">
+                          <div class="chatContent">
+                            <div class="messageWrapper">
+                              <div class="messageScrollerWrap">
+                                <div id="chatContent" class="messageScroller">
+
+                                  <!-- <div class="channelOption">
+                                    <span class="chennelOptionName">name</span>
+                                    <input class="chennelOptionInput" type="text" readonly value="hub">
+                                    <button class="chennelOptionButton" disabled="disabled">Save</button>
+                                  </div>
+
+                                  <div class="channelOption">
+                                    <span class="chennelOptionName">topic</span>
+                                    <input class="chennelOptionInput" type="text" value="">
+                                    <button class="chennelOptionButton">Save</button>
+                                  </div> -->
+                                  
+                                </div>
+                              </div>
+                            </div>
 
                             <!-- Hello there ! <br>
                             Chat here ... -->
@@ -434,15 +453,20 @@
             </div>
           </div>
         </div>
+
+        <div id="taskbar" class="row taskbar">
+          Created by nedius ✨
+        </div>
+
       </div>
 
       <!-- <div id="fleme">
         <iframe id="flemeIframe" src="" frameborder="0"></iframe>
       </div> -->
 
-      <div id="taskbar" class="row taskbar">
+      <!-- <div id="taskbar" class="row taskbar">
         Created by nedius ✨
-      </div>
+      </div> -->
    </div>
 
     <script src="./renderer.js"></script>

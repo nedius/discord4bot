@@ -111,22 +111,40 @@ function selectChannel(e){
                     // 'undefined',
                     'object',
     ];
-    let whitelist = [   'name',
-						'guild',
-                        'id',
-                        'type',
-                        'topic',
-						'bitrate',
-						'joinable',
-						'userLimit',
-						'full',
-                        'createdAt',
-                        'nsfw',
-                        'position',
-                        'calculatedPosition',
-                        'typing',
-                        'typingCount',
+    let whitelist = [   {name : 'name', method : "setName"},
+                        {name : 'guild', method : ""},
+                        {name : 'id', method : ""},
+                        {name : 'type', method : ""},
+                        {name : 'topic', method : "setTopic"},
+                        {name : 'bitrate', method : "setBitrate"},
+                        {name : 'joinable', method : ""},
+                        {name : 'userLimit', method : ""},
+                        {name : 'full', method : ""},
+                        {name : 'createdAt', method : ""},
+                        {name : 'nsfw', method : "setNSFW"},
+                        {name : 'rateLimitPerUser', method : "setRateLimitPerUser"},
+                        {name : 'position', method : ""},
+                        {name : 'calculatedPosition', method : ""},
+                        {name : 'typing', method : ""},
+                        {name : 'typingCount', method : ""},
     ];
+
+    whitelist.has = function(string){
+        // for(data of this){
+        for(var i = 0 ; i < this.length; i++){
+            // console.log(data);
+            if(this[i].name === string){
+                // console.log(data.name, '=', string);
+                return true;
+            } 
+        }
+        return false;
+    };
+
+    // let dimaBlet = {
+    //     "one": {},
+    //     "two": {},
+    // }
 
     while(channelId.parentNode){
         if( channelId.classList.contains('sidebarChannelContainer') || channelId.classList.contains('sidebarCategoryContainer') )
@@ -140,23 +158,34 @@ function selectChannel(e){
     let channel = client.channels.get(channelId.substring(3));
     // let guildCh = client.channels.get(channelId.substring(3)).guild.channels.get(channelId.substring(3));
 
-    console.log(channel);
+    // console.log(channel);
     delChatOps();
     document.getElementsByClassName('chatTitleName')[0].innerText = channel.name;
 
     for(data of whitelist){
-        if(typeof(channel[data]) == 'undefined')
+        // console.log(data);
+        if(typeof(channel[data.name]) == 'undefined')
             continue;
-        addChatOp(channel, data);
+        addChatOp(channel, data.name, data.method);
     }
 
-    addChatOp({'': ''}, '');
+    addChatOp({'__SEPARATOR': '__SEPARATOR'}, '__SEPARATOR');
 
     for(data in channel){
-        if( types.includes( typeof(channel[data]) ) && !whitelist.includes(data)){
-            // console.log(data, '(', typeof(channel[data]) , ')', ': ',  channel[data]);
-            addChatOp(channel, data);
+        if( types.includes( typeof(channel[data]) ) ){
+            if(!whitelist.has(data))
+                addChatOp(channel, data);
         }
+    }
+
+    let buttons = document.getElementsByClassName('chennelOptionButton');
+
+    for(var i=0; i < buttons.length; i++){
+        buttons[i].addEventListener('click', function(e){
+            let target = e.target,
+                parent = target.parentNode;
+            console.log(parent.getAttribute('channel'), parent.children[0].innerText, parent.children[1].value);
+        });
     }
 
     // for(data in channel){

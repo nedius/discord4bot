@@ -91,6 +91,7 @@ function addGuild(guild){
     else
         guildImg.src = "./img/placeholder.png";
     guildImg.alt = guild.name;
+    guildImg.setAttribute("draggable", "false");
 
     guildWrapper.classList.add('wrapper');
 
@@ -144,7 +145,7 @@ function delGuilds(){
 
     // guildContainer.lastChild.remove();
 
-    guildContainer.innerHTML =  `<div class="listItem"><div class="wrapper"><img class="guildImage" src="./img/placeholder.png" alt="guild"></div></div>`+
+    guildContainer.innerHTML =  `<div class="listItem"><div class="wrapper"><img class="guildImage" draggable="false" src="./img/placeholder.png" alt="guild"></div></div>`+
                                 `<div class="listItem"><div class="guildSeparator"></div></div>`;
 }
 
@@ -440,11 +441,13 @@ function setGoLive(user, state){
 
 function setClientUser(user){
     var username = document.getElementsByClassName('nameTagUsername')[0],
-        userTag = document.getElementsByClassName('nameTagUserId')[0];
+        userTag = document.getElementsByClassName('nameTagUserId')[0],
+        userImage = document.getElementById('userImage');
 
     username.innerText = user.username;
     userTag.innerText = '#' + user.discriminator;
     // userTag.innerText = (user.tag).substring(user.username.length);
+    userImage.src = user.avatarURL.substring(0, user.avatarURL.indexOf('?')) + '?size=64';;
 
     if(!user.bot){
         document.getElementById('clientBotTag').innerText = 'user';
@@ -508,10 +511,50 @@ function randomMotd(){
     document.getElementById('authSubTitle').innerText = reason;
 }
 
-function addChatOp(channel, data){
+function addChatOp(channel, data, method = ''){
+    let chatContent = document.getElementById('chatContent'),
+    name = document.createElement('span'),
+    input = document.createElement('input'),
+    btn = document.createElement('button'),
+    div = document.createElement('div'),
+    separator = document.createElement('div');;
+    
+    // console.log(channel, data, method);
+
+    if(channel[data] == '__SEPARATOR'){
+        separator.classList.add('channelOptionSeparator');
+        chatContent.append(separator)
+        return;
+    }
+
+    name.classList.add('chennelOptionName');
+    name.innerText = `${data}`;
+
+    input.classList.add('chennelOptionInput');
+    input.value = channel[data];
+    if(method=='') input.readOnly = true;
+    input.type = typeof(channel[data]);
+
+    btn.classList.add('chennelOptionButton');
+    btn.innerText = 'Save';
+
+    div.classList.add('channelOption');
+    div.setAttribute('channel', channel.id);
+
+    separator.classList.add('channelOptionSeparator');
+
+    div.append(name);
+    div.append(input);
+    if(method!=='') div.append(btn);
+
+    chatContent.append(div);
+
     // console.log(data);
     // console.log(data, '(', typeof(channel[data]) , ')', ': ',  channel[data]);
-    document.getElementById('chatContent').innerHTML += `${data}: ${channel[data]} <br>`;
+    // if(method!='')
+    //     document.getElementById('chatContent').innerHTML += `<p class="red">${data}: ${channel[data]} [method: ${method}] </p><br>`;
+    // else
+    //     document.getElementById('chatContent').innerHTML += `<p>${data}: ${channel[data]} </p><br>`;
 }
 
 function delChatOps(){
