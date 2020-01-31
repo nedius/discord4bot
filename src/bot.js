@@ -116,8 +116,8 @@ function selectChannel(e){
                     // 'undefined',
                     'object',
     ];
-    let whitelist = [   {name : 'name', method : "setName"},
-                        {name : 'guild', method : ""},
+    let whitelist = [   {name : 'guild', method : ""},
+                        {name : 'name', method : "setName"},
                         {name : 'id', method : ""},
                         {name : 'type', method : ""},
                         {name : 'topic', method : "setTopic"},
@@ -183,13 +183,33 @@ function selectChannel(e){
         }
     }
 
-    let buttons = document.getElementsByClassName('chennelOptionButton');
+    let buttons = document.getElementsByClassName('channelOptionButton');
 
     for(var i=0; i < buttons.length; i++){
         buttons[i].addEventListener('click', function(e){
             let target = e.target,
-                parent = target.parentNode;
-            console.log(parent.getAttribute('channel'), parent.children[0].innerText, parent.children[1].value);
+                parent = target.parentNode,
+                chId = parent.getAttribute('channel'),
+                method = parent.getAttribute('method'),
+                value = parent.children[1].value,
+                originalValue = parent.getAttribute('originalValue');
+            
+            parent.children[1].classList.remove('error');
+            clearTaskBar();
+
+            // console.log(chId, method, value);
+
+            if(value == originalValue)
+                return;
+
+            client.channels.get(chId)[method](value).catch(function(e){
+                console.error(e.message);
+                parent.children[1].classList.add('error');
+                error(e.message.replace(/\n/g, ", "));
+            }).then(function(e){
+                log(`Set ${parent.children[0].innerText} of ${chId} from ${originalValue} to ${value}`);
+            document.getElementById(`ch/${chId}`).click();
+            });
         });
     }
 

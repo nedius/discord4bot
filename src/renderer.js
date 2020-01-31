@@ -517,7 +517,7 @@ function addChatOp(channel, data, method = ''){
     input = document.createElement('input'),
     btn = document.createElement('button'),
     div = document.createElement('div'),
-    separator = document.createElement('div');;
+    separator = document.createElement('div');
     
     // console.log(channel, data, method);
 
@@ -527,19 +527,22 @@ function addChatOp(channel, data, method = ''){
         return;
     }
 
-    name.classList.add('chennelOptionName');
+    name.classList.add('channelOptionName');
     name.innerText = `${data}`;
 
-    input.classList.add('chennelOptionInput');
+    input.classList.add('channelOptionInput');
     input.value = channel[data];
     if(method=='') input.readOnly = true;
     input.type = typeof(channel[data]);
 
-    btn.classList.add('chennelOptionButton');
+    btn.classList.add('channelOptionButton');
     btn.innerText = 'Save';
 
     div.classList.add('channelOption');
     div.setAttribute('channel', channel.id);
+    if(method !== '')
+        div.setAttribute('method', method);
+    div.setAttribute('originalValue', channel[data]);
 
     separator.classList.add('channelOptionSeparator');
 
@@ -559,4 +562,46 @@ function addChatOp(channel, data, method = ''){
 
 function delChatOps(){
     document.getElementById('chatContent').innerHTML = '';
+}
+
+function error(content = ''){
+    let taskbar = document.getElementById('taskbar'),
+        taskbarBtn = document.getElementById('btnAppAuthor'),
+        taskbarContent = document.getElementById('taskbarError');
+    
+    taskbarContent.classList.add('error')
+    taskbarContent.innerText = content;
+
+    if(content !== '')
+        taskbarBtn.classList.add('error');
+    else
+        taskbarBtn.classList.remove('error');
+    // taskbarBtn.click();
+    taskbar.classList.add('openTask');
+}
+
+function log(content = ''){
+    let taskbar = document.getElementById('taskbar'),
+        taskbarBtn = document.getElementById('btnAppAuthor'),
+        taskbarContent = document.getElementById('taskbarError');
+
+    taskbarContent.classList.remove('error')
+    taskbarContent.innerText = content;
+
+    taskbarBtn.classList.remove('error');
+    taskbarBtn.click();
+}
+
+function clearTaskBar(content = ''){
+    let taskbar = document.getElementById('taskbar'),
+        taskbarBtn = document.getElementById('btnAppAuthor'),
+        taskbarContent = document.getElementById('taskbarError');
+
+    taskbarContent.classList.remove('error');
+    taskbarContent.innerText = '';
+
+    taskbarBtn.classList.remove('error');
+    // taskbarBtn.click();;
+    taskbar.classList.remove('closeTask');
+    taskbar.classList.remove('openTask');
 }

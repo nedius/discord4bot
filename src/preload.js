@@ -166,6 +166,12 @@ window.addEventListener('DOMContentLoaded', () => {
   document.getElementById('btnAppAuthor').addEventListener('click', function(){
     let taskbar = document.getElementById(`taskbar`);
 
+    if(taskbar.classList.contains('openTask')){
+      taskbar.classList.remove('openTask');
+      taskbar.classList.remove('closeTask');
+      return;
+    }
+
     if(btnAppAuthorClicked)
       return;
     else
