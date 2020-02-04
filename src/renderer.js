@@ -605,3 +605,67 @@ function clearTaskBar(content = ''){
     taskbar.classList.remove('closeTask');
     taskbar.classList.remove('openTask');
 }
+
+function addMemeber(user){
+    // console.log(user)
+    let memberDiv = document.getElementById('memberDiv'),
+        member = document.createElement('div'),
+        memberLayout = document.createElement('div'),
+        memberAvatar = document.createElement('div'),
+        memberAvatarWrapper = document.createElement('div'),
+        memberAvatarMask = document.createElement('img'),
+        memberContent = document.createElement('div'),
+        memberName = document.createElement('div'),
+        memberSubText = document.createElement('div'),
+        memberActivity = document.createElement('div'),
+        memberGroup = document.createElement('header');
+    
+    if(!document.getElementById(`rl/${user.highestRole.id}`)){
+        memberGroup.classList.add('memberGroup');
+        memberGroup.id = `rl/${user.highestRole.id}`;
+        memberGroup.innerText = `${user.highestRole.name} - ${user.highestRole.members.size}`;
+
+        memberDiv.append(memberGroup);
+    }
+
+    member.classList.add('member');
+    member.id = `mb/${user.id}`;
+    member.setAttribute('guild', user.guild.id);
+    memberLayout.classList.add('memberLayout');
+    memberAvatar.classList.add('memberAvatar');
+    memberAvatarWrapper.classList.add('memberAvatarWrapper');
+    memberAvatarMask.classList.add('memberAvatarMask');
+    memberContent.classList.add('memberContent');
+    memberName.classList.add('memberName');
+    memberSubText.classList.add('memberSubText');
+    memberActivity.classList.add('memberActivity');
+
+    memberActivity.innerText = '';
+    memberSubText.append(memberActivity);
+    memberName.innerText = user.nickname != null ? user.nickname : user.user.username;
+
+    if(user.colorRole) memberName.style.color = user.colorRole.hexColor;
+
+    memberContent.append(memberName);
+    memberContent.append(memberSubText);
+
+    let avatarUrl = user.user.displayAvatarURL;
+    if( avatarUrl.indexOf('?size') )
+        avatarUrl = avatarUrl.substring(0, avatarUrl.indexOf('?')) + '?size=64';
+
+    memberAvatarMask.src = avatarUrl !== '?size=64' ? avatarUrl : './img/placeholder.png';
+    memberAvatarMask.alt = user.user.username + ' avatar';
+    memberAvatarWrapper.append(memberAvatarMask);
+    memberAvatar.append(memberAvatarWrapper);
+
+    memberLayout.append(memberAvatar);
+    memberLayout.append(memberContent);
+
+    member.append(memberLayout);
+
+    memberDiv.append(member);
+}
+
+function delMembers(){
+    document.getElementById('memberDiv').innerHTML = '';
+}

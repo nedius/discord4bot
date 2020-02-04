@@ -13,6 +13,8 @@ client.on('ready', () => {
 
     setClientUser(client.user);
 
+    delGuilds();
+
     client.guilds.tap(guild => {
         addGuild(guild);
         // console.log(guild.name);
@@ -97,10 +99,22 @@ function selectGuild(e){
 
     // console.log(list.join('\n'));
 
-
-
     guild.channels.tap(channel =>{ 
         document.getElementById('ch/' + channel.id).addEventListener('click', selectChannel);
+    })
+
+    const roleFilter = (a, b) =>{
+        return b.highestRole.position - a.highestRole.position;
+
+        // if(a.hoistRole === null || b.hoistRole === null)
+        //     return b.highestRole.position - a.highestRole.position;
+        // return b.hoistRole.position - a.hoistRole.position;
+    };
+
+    delMembers();
+    guild.members.sort(roleFilter).tap(member =>{
+        addMemeber(member);
+        document.getElementById(`mb/${member.id}`).addEventListener('click', selectMember);
     })
 
     store.set('lastGuild', guildId);
@@ -208,7 +222,8 @@ function selectChannel(e){
                 error(e.message.replace(/\n/g, ", "));
             }).then(function(e){
                 log(`Set ${parent.children[0].innerText} of ${chId} from ${originalValue} to ${value}`);
-            document.getElementById(`ch/${chId}`).click();
+                document.getElementById(`gd/${client.channels.get(chId).guild.id}`).click();
+                document.getElementById(`ch/${chId}`).click();
             });
         });
     }
@@ -248,3 +263,17 @@ client.on('voiceStateUpdate', (oldM, newM) => {
     //     setGoLive(newM, true);
 
 });
+
+function selectMember(e){
+    // console.log(e.target);
+    let memberDiv = e.target;
+
+    while(memberDiv.parentNode){
+        if( memberDiv.classList.contains('member') ) break;
+        memberDiv = memberDiv.parentNode;
+    }
+    // if(memberDiv) memberDiv = memberDiv.id;
+    let member = client.guilds.get(memberDiv.getAttribute('guild')).members.get(memberDiv.id.substring(3));
+    
+    console.log(member);
+}
