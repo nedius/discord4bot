@@ -8,3 +8,4 @@ discord4bot-win32-x64/
 npm run build.bat
 npm start.bat
 discord4bot - appdata.lnk
+src/real.css
