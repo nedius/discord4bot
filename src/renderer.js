@@ -244,7 +244,7 @@ function addVoiceUser(channel, user){
     if(channel == undefined || user == undefined)
         return;
 
-    if(document.getElementById(user.id) != undefined)
+    if(document.getElementById(`vmb/${user.id}`) != undefined)
         delVoiceUser(user, true);
 
     let channelDiv = document.getElementById('ch/' + channel.id),
@@ -292,7 +292,7 @@ function addVoiceUser(channel, user){
 
     voiceUserContent.classList.add('voiceUserContent');
     voiceUser.classList.add('voiceUser');
-    voiceUser.id = user.id;
+    voiceUser.id = `vmb/${user.id}`;
 
     voiceUserAvatarContainer.append(img)
     voiceUserContent.append(voiceUserAvatarContainer);
@@ -347,7 +347,7 @@ function delVoiceUser(user, changingServer = false){
     if(user == undefined)
         return;
     
-    let voiceUser = document.getElementById(user.id),
+    let voiceUser = document.getElementById(`vmb/${user.id}`),
         list = voiceUser.parentNode;
 
     if(voiceUser != undefined)
@@ -362,7 +362,7 @@ function setDeaf(user, state){
     if(user == undefined || state == undefined)
         return;
 
-    let voiceUser = document.getElementById(user.id),
+    let voiceUser = document.getElementById(`vmb/${user.id}`),
         voiceUserIcons = voiceUser.getElementsByClassName('voiceUserIcons')[0],
         voiceUserIconsSpacing = document.createElement('div'),
         svg = document.createElement('svg');
@@ -376,6 +376,7 @@ function setDeaf(user, state){
         voiceUserIconsSpacing.classList.add('voiceUserIconsSpacing');
         svg = document.createRange().createContextualFragment(`<svg id="Nova_HeadsetDeafen" class="voiceUserIcon" aria-hidden="false" width="24" height="24" viewBox="0 0 24 24"><path d="M6.16204 15.0065C6.10859 15.0022 6.05455 15 6 15H4V12C4 7.588 7.589 4 12 4C13.4809 4 14.8691 4.40439 16.0599 5.10859L17.5102 3.65835C15.9292 2.61064 14.0346 2 12 2C6.486 2 2 6.485 2 12V19.1685L6.16204 15.0065Z" fill="currentColor"></path><path d="M19.725 9.91686C19.9043 10.5813 20 11.2796 20 12V15H18C16.896 15 16 15.896 16 17V20C16 21.104 16.896 22 18 22H20C21.105 22 22 21.104 22 20V12C22 10.7075 21.7536 9.47149 21.3053 8.33658L19.725 9.91686Z" fill="currentColor"></path><path d="M3.20101 23.6243L1.7868 22.2101L21.5858 2.41113L23 3.82535L3.20101 23.6243Z" fill="currentColor"></path></svg>`);
         voiceUserIconsSpacing.append(svg);
+        if(user.serverDeaf) voiceUserIconsSpacing.children[0].style.color = '#f04747';
         voiceUserIcons.append(voiceUserIconsSpacing);
     }else{
         let icon = voiceUser.querySelector('#Nova_HeadsetDeafen');
@@ -387,7 +388,7 @@ function setMute(user, state){
     if(user == undefined || state == undefined)
         return;
 
-    let voiceUser = document.getElementById(user.id),
+    let voiceUser = document.getElementById(`vmb/${user.id}`),
         voiceUserIcons = voiceUser.getElementsByClassName('voiceUserIcons')[0],
         voiceUserIconsSpacing = document.createElement('div'),
         svg = document.createElement('svg');
@@ -406,6 +407,7 @@ function setMute(user, state){
         voiceUserIconsSpacing.classList.add('voiceUserIconsSpacing');
         svg = document.createRange().createContextualFragment(`<svg id="Nova_MicrophoneMute" class="voiceUserIcon" aria-hidden="false" width="24" height="24" viewBox="0 0 24 24"><path d="M6.7 11H5C5 12.19 5.34 13.3 5.9 14.28L7.13 13.05C6.86 12.43 6.7 11.74 6.7 11Z" fill="currentColor"></path><path d="M9.01 11.085C9.015 11.1125 9.02 11.14 9.02 11.17L15 5.18V5C15 3.34 13.66 2 12 2C10.34 2 9 3.34 9 5V11C9 11.03 9.005 11.0575 9.01 11.085Z" fill="currentColor"></path><path d="M11.7237 16.0927L10.9632 16.8531L10.2533 17.5688C10.4978 17.633 10.747 17.6839 11 17.72V22H13V17.72C16.28 17.23 19 14.41 19 11H17.3C17.3 14 14.76 16.1 12 16.1C11.9076 16.1 11.8155 16.0975 11.7237 16.0927Z" fill="currentColor"></path><path d="M21 4.27L19.73 3L3 19.73L4.27 21L8.46 16.82L9.69 15.58L11.35 13.92L14.99 10.28L21 4.27Z" fill="currentColor"></path></svg>`);
         voiceUserIconsSpacing.append(svg);
+        if(user.serverMute) voiceUserIconsSpacing.children[0].style.color = '#f04747';
         voiceUserIcons.insertBefore(voiceUserIconsSpacing, voiceUserIcons.firstChild);
     }else{
         let icon = voiceUser.querySelector('#Nova_MicrophoneMute');
@@ -417,7 +419,7 @@ function setGoLive(user, state){
     if(user == undefined || state == undefined)
         return;
 
-    let voiceUser = document.getElementById(user.id),
+    let voiceUser = document.getElementById(`vmb/${user.id}`),
         voiceUserIcons = voiceUser.getElementsByClassName('voiceUserIcons')[0],
         voiceUserIconsSpacing = document.createElement('div'),
         div = document.createElement('div'); // liveTag
@@ -538,8 +540,24 @@ function addChatOp(channel, data, method = ''){
     btn.classList.add('channelOptionButton');
     btn.innerText = 'Save';
 
+    if(data === 'id'){
+        btn.innerText = 'Copy';
+        btn.style.backgroundColor = '#43b581';
+
+        btn.addEventListener('click', (e) =>{
+            let value = e.target.parentNode.children[1].value;
+
+            navigator.clipboard.writeText(value).then(function() {
+                // console.log('Async: Copying to clipboard was successful!');
+              }, function(err) {
+                console.error('Async: Could not copy text: ', err);
+              });
+        });
+    }
+
     div.classList.add('channelOption');
     div.setAttribute('channel', channel.id);
+    div.setAttribute('guild', channel.guild.id);
     if(method !== '')
         div.setAttribute('method', method);
     div.setAttribute('originalValue', channel[data]);
@@ -548,7 +566,7 @@ function addChatOp(channel, data, method = ''){
 
     div.append(name);
     div.append(input);
-    if(method!=='') div.append(btn);
+    if(method!=='' || data==='id') div.append(btn);
 
     chatContent.append(div);
 
@@ -623,7 +641,8 @@ function addMemeber(user){
     if(!document.getElementById(`rl/${user.highestRole.id}`)){
         memberGroup.classList.add('memberGroup');
         memberGroup.id = `rl/${user.highestRole.id}`;
-        memberGroup.innerText = `${user.highestRole.name} - ${user.highestRole.members.size}`;
+        // memberGroup.innerText = `${user.highestRole.name} - ${user.highestRole.members.size}`;
+        memberGroup.innerText = `${user.hoistRole !== null ? user.hoistRole.name : user.highestRole.name} - ${user.highestRole.members.size}`;
 
         memberDiv.append(memberGroup);
     }
@@ -640,7 +659,27 @@ function addMemeber(user){
     memberSubText.classList.add('memberSubText');
     memberActivity.classList.add('memberActivity');
 
-    memberActivity.innerText = '';
+    let status = '';
+
+    if(user.presence.game){
+        switch(user.presence.game.type){
+            case 0: { status = 'Playing'; break; }
+            case 1: { status = 'Streaming'; break; }
+            case 2: { status = 'Listening'; break; }
+            case 3: { status = 'Watching'; break; }
+            case 4: { status = ''; break; } //custom
+            default : status = '';
+        }
+
+        if(user.presence.game.name !== 'Custom Status')
+            status += ` ${user.presence.game.name}`;
+        else
+            status += ` ${user.presence.game.state}`;
+
+    }
+
+    memberActivity.innerText = status;
+
     memberSubText.append(memberActivity);
     memberName.innerText = user.nickname != null ? user.nickname : user.user.username;
 
@@ -662,6 +701,7 @@ function addMemeber(user){
     memberLayout.append(memberContent);
 
     member.append(memberLayout);
+    if(user.presence.status === 'offline') member.style.opacity = '50%';
 
     memberDiv.append(member);
 }

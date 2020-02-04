@@ -116,6 +116,11 @@ function selectGuild(e){
         addMemeber(member);
         document.getElementById(`mb/${member.id}`).addEventListener('click', selectMember);
     })
+    
+    // guild.members.filter(member => member.hoistRole == null).sort(roleFilter).tap(member =>{
+    //     addMemeber(member);
+    //     document.getElementById(`mb/${member.id}`).addEventListener('click', selectMember);
+    // })
 
     store.set('lastGuild', guildId);
 }
@@ -137,7 +142,7 @@ function selectChannel(e){
                         {name : 'topic', method : "setTopic"},
                         {name : 'bitrate', method : "setBitrate"},
                         {name : 'joinable', method : ""},
-                        {name : 'userLimit', method : ""},
+                        {name : 'userLimit', method : "setUserLimit"},
                         {name : 'full', method : ""},
                         {name : 'createdAt', method : ""},
                         {name : 'nsfw', method : "setNSFW"},
@@ -160,12 +165,11 @@ function selectChannel(e){
         return false;
     };
 
-    // let dimaBlet = {
-    //     "one": {},
-    //     "two": {},
-    // }
-
     while(channelId.parentNode){
+        if( channelId.classList.contains('voiceUser') ){
+            selectVoiceMember(channelId.id.substring(1));
+            return;
+        }
         if( channelId.classList.contains('sidebarChannelContainer') || channelId.classList.contains('sidebarCategoryContainer') )
             break;
         channelId = channelId.parentNode;
@@ -201,6 +205,8 @@ function selectChannel(e){
 
     for(var i=0; i < buttons.length; i++){
         buttons[i].addEventListener('click', function(e){
+            if(e.target.innerText !== 'Save')
+                return;
             let target = e.target,
                 parent = target.parentNode,
                 chId = parent.getAttribute('channel'),
@@ -217,9 +223,9 @@ function selectChannel(e){
                 return;
 
             client.channels.get(chId)[method](value).catch(function(e){
-                console.error(e.message);
                 parent.children[1].classList.add('error');
                 error(e.message.replace(/\n/g, ", "));
+                console.error(e.message);
             }).then(function(e){
                 log(`Set ${parent.children[0].innerText} of ${chId} from ${originalValue} to ${value}`);
                 document.getElementById(`gd/${client.channels.get(chId).guild.id}`).click();
@@ -237,6 +243,10 @@ function selectChannel(e){
 
     
     store.set('lastChannel', channelId);
+}
+
+function selectVoiceMember(id){
+    document.getElementById(id).click();
 }
 
 client.on('voiceStateUpdate', (oldM, newM) => {
@@ -267,6 +277,30 @@ client.on('voiceStateUpdate', (oldM, newM) => {
 function selectMember(e){
     // console.log(e.target);
     let memberDiv = e.target;
+    let types = [   'string',
+                    'number',
+                    'boolean',
+                    'bigint',
+                    // 'undefined',
+                    'object',
+    ];
+    let whitelist = [   {name : 'guild', method : ""},
+                        {name : 'nickname', method : "setNickname"},
+                        {name : 'displayName', method : ""},
+                        {name : 'id', method : ""},
+                        {name : 'serverDeaf', method : "setDeaf"},
+                        {name : 'serverMute', method : "setMute"},
+                        {name : 'voiceChannelID', method : "setVoiceChannel"},
+    ];
+
+    whitelist.has = function(string){
+        for(var i = 0 ; i < this.length; i++){
+            if(this[i].name === string){
+                return true;
+            } 
+        }
+        return false;
+    };
 
     while(memberDiv.parentNode){
         if( memberDiv.classList.contains('member') ) break;
@@ -275,5 +309,58 @@ function selectMember(e){
     // if(memberDiv) memberDiv = memberDiv.id;
     let member = client.guilds.get(memberDiv.getAttribute('guild')).members.get(memberDiv.id.substring(3));
     
-    console.log(member);
+    // console.log(member);
+
+    delChatOps();
+    document.getElementsByClassName('chatTitleName')[0].innerText = member.nickname != null ? member.nickname : member.user.username;
+
+    for(data of whitelist){
+        // console.log(data);
+        if(typeof(member[data.name]) == 'undefined')
+            continue;
+        addChatOp(member, data.name, data.method);
+    }
+
+    addChatOp({'__SEPARATOR': '__SEPARATOR'}, '__SEPARATOR');
+
+    for(data in member){
+        if( types.includes( typeof(member[data]) ) ){
+            if(!whitelist.has(data))
+                addChatOp(member, data);
+        }
+    }
+
+    let buttons = document.getElementsByClassName('channelOptionButton');
+
+    for(var i=0; i < buttons.length; i++){
+        buttons[i].addEventListener('click', function(e){
+            if(e.target.innerText !== 'Save')
+                return;
+            let target = e.target,
+                parent = target.parentNode,
+                gdId = parent.getAttribute('guild'),
+                mbId = parent.getAttribute('channel'),
+                method = parent.getAttribute('method'),
+                value = parent.children[1].value,
+                originalValue = parent.getAttribute('originalValue');
+            
+            parent.children[1].classList.remove('error');
+            clearTaskBar();
+
+            if(value == originalValue)
+                return;
+
+            client.guilds.get(gdId).members.get(mbId)[method](value).catch(function(e){
+                parent.children[1].classList.add('error');
+                error(e.message.replace(/\n/g, ", "));
+                console.error(e.message);
+            }).then(function(e){
+                log(`Set ${parent.children[0].innerText} of ${mbId} from ${originalValue} to ${value}`);
+                document.getElementById(`gd/${gdId}`).click();
+                document.getElementById(`mb/${mbId}`).click();
+            });
+        });
+    }
+
+    store.set('lastChannel', memberDiv.id);
 }
