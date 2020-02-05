@@ -637,14 +637,35 @@ function addMemeber(user){
         memberSubText = document.createElement('div'),
         memberActivity = document.createElement('div'),
         memberGroup = document.createElement('header');
-    
-    if(!document.getElementById(`rl/${user.highestRole.id}`)){
-        memberGroup.classList.add('memberGroup');
-        memberGroup.id = `rl/${user.highestRole.id}`;
-        // memberGroup.innerText = `${user.highestRole.name} - ${user.highestRole.members.size}`;
-        memberGroup.innerText = `${user.hoistRole !== null ? user.hoistRole.name : user.highestRole.name} - ${user.highestRole.members.size}`;
 
-        memberDiv.append(memberGroup);
+    if(user.presence.status !== 'offline'){
+        if(user.hoistRole){
+            if(!document.getElementById(`rl/${user.hoistRole.id}`)){
+                memberGroup.classList.add('memberGroup');
+                memberGroup.id = `rl/${user.hoistRole.id}`;
+                memberGroup.innerText = `${user.hoistRole.name} - ${user.hoistRole.members.filter(member => member.presence.status !== 'offline' && member.hoistRole === user.hoistRole).size}`;
+                // memberGroup.innerText = `${user.hoistRole !== null ? user.hoistRole.name : user.highestRole.name} - ${user.highestRole.members.size}`;
+
+                memberDiv.append(memberGroup);
+            }
+        }else{
+            if(!document.getElementById(`rl/${user.highestRole.id}`) && user.highestRole.name == '@everyone'){
+                memberGroup.classList.add('memberGroup');
+                memberGroup.id = `rl/${user.highestRole.id}`;
+                memberGroup.innerText = `${user.highestRole.name === '@everyone' ? 'online' : user.highestRole.name} - ${user.highestRole.members.filter(member => member.presence.status !== 'offline' && member.hoistRole === null).size}`;
+                
+                memberDiv.append(memberGroup);
+            }
+        }
+    }else{
+        if(!document.getElementById(`rl/offline`)){
+            memberGroup.classList.add('memberGroup');
+            memberGroup.id = `rl/offline`;
+            // console.log(user)
+            memberGroup.innerText = `offline - ${user.guild.members.filter(member => member.presence.status === 'offline').size}`;
+            
+            memberDiv.append(memberGroup);
+        }
     }
 
     member.classList.add('member');

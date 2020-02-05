@@ -103,16 +103,41 @@ function selectGuild(e){
         document.getElementById('ch/' + channel.id).addEventListener('click', selectChannel);
     })
 
-    const roleFilter = (a, b) =>{
-        return b.highestRole.position - a.highestRole.position;
+    loadMembers(guild);
 
-        // if(a.hoistRole === null || b.hoistRole === null)
-        //     return b.highestRole.position - a.highestRole.position;
-        // return b.hoistRole.position - a.hoistRole.position;
-    };
+    store.set('lastGuild', guildId);
+}
+
+function loadMembers(guild){
+    
+    // const roleFilter = (a, b) =>{
+    //     return b.highestRole.position - a.highestRole.position;
+
+    //     // if(a.hoistRole === null || b.hoistRole === null)
+    //     //     return b.highestRole.position - a.highestRole.position;
+    //     // return b.hoistRole.position - a.hoistRole.position;
+    // };
 
     delMembers();
-    guild.members.sort(roleFilter).tap(member =>{
+    // guild.members.sort(roleFilter).tap(member =>{
+    //     addMemeber(member);
+    //     document.getElementById(`mb/${member.id}`).addEventListener('click', selectMember);
+    // })
+
+    guild.roles.sort((a, b) => b.calculatedPosition - a.calculatedPosition).tap(role =>{
+        if(role.hoist || role.name == '@everyone'){
+            // console.log(role.name, role.position, role.calculatedPosition, role.members.size);
+            role.members.filter(member => member.presence.status !== 'offline').tap(member =>{
+                // console.log(member.displayName);
+                if(!document.getElementById(`mb/${member.id}`)){
+                    addMemeber(member);
+                    document.getElementById(`mb/${member.id}`).addEventListener('click', selectMember);
+                }
+            })
+        } 
+    })
+
+    guild.members.filter(member => member.presence.status === 'offline').tap(member =>{
         addMemeber(member);
         document.getElementById(`mb/${member.id}`).addEventListener('click', selectMember);
     })
@@ -121,8 +146,6 @@ function selectGuild(e){
     //     addMemeber(member);
     //     document.getElementById(`mb/${member.id}`).addEventListener('click', selectMember);
     // })
-
-    store.set('lastGuild', guildId);
 }
 
 function selectChannel(e){
@@ -364,3 +387,10 @@ function selectMember(e){
 
     store.set('lastChannel', memberDiv.id);
 }
+
+client.on('presenceUpdate', (oldM, newM) =>{
+    if(newM.presence.status != oldM.presence.status && newM.guild.id === store.get('lastGuild').substring(3)){
+        // console.log(oldM.displayName, oldM.presence.status, '=>', newM.presence.status)
+        loadMembers(newM.guild);
+    }
+})

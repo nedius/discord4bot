@@ -1291,7 +1291,7 @@ body{
 .member:hover{
     color: var(--interactive-hover);
     background-color: var(--background-modifier-hover);
-    opacity: 1;
+    opacity: 1 !important;
 }
 
 .member:active{
