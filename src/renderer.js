@@ -86,17 +86,22 @@ function addGuild(guild){
         guildListItem = document.createElement('div');
 
     guildImg.classList.add('guildImage');
-    if(typeof(guild.iconURL) == "string" )
-        guildImg.src = guild.iconURL;
-    else
-        guildImg.src = "./img/placeholder.png";
     guildImg.alt = guild.name;
     guildImg.setAttribute("draggable", "false");
+
+    if(typeof(guild.iconURL) == "string" )
+        guildImg.src = guild.iconURL;
+    else{
+        // guildImg.alt = guild.nameAcronym;
+        // guildImg.style.backgroundColor = 'var(--background-secondary)';
+        guildImg.src = "./img/placeholder.png";
+    }
 
     guildWrapper.classList.add('wrapper');
 
     guildListItem.classList.add('listItem');
     guildListItem.id = 'gd/' + guild.id;
+    // guildListItem.setAttribute('data-title', guild.name);
     
     guildWrapper.append(guildImg);
     guildListItem.append(guildWrapper);
@@ -513,7 +518,7 @@ function randomMotd(){
     document.getElementById('authSubTitle').innerText = reason;
 }
 
-function addChatOp(channel, data, method = ''){
+function addChatOpDeprecated(channel, data, method = ''){
     let chatContent = document.getElementById('chatContent'),
     name = document.createElement('span'),
     input = document.createElement('input'),
@@ -580,6 +585,81 @@ function addChatOp(channel, data, method = ''){
 
 function delChatOps(){
     document.getElementById('chatContent').innerHTML = '';
+}
+
+/* obj for function */
+
+let someRandomObj =
+[
+    { type: 'separator' },
+    { type: 'input', channel: {}, data: '', method: '', callback: ()=>{} },
+];
+
+function addChatOp(options){
+    console.log(options);
+
+    for(option of options){
+        switch(option.type){
+            case 'separator':{
+                let chatContent = document.getElementById('chatContent'),
+                separator = document.createElement('div');
+
+                separator.classList.add('channelOptionSeparator');
+                chatContent.append(separator)
+                break;
+            }
+            case 'input':{
+                let chatContent = document.getElementById('chatContent'),
+                name = document.createElement('span'),
+                input = document.createElement('input'),
+                btn = document.createElement('button'),
+                div = document.createElement('div');
+
+                name.classList.add('channelOptionName');
+                name.innerText = `${option.data}`;
+            
+                input.classList.add('channelOptionInput');
+                input.value = option.channel[option.data];
+                if(option.method=='') input.readOnly = true;
+                input.type = typeof(option.channel[option.data]);
+            
+                btn.classList.add('channelOptionButton');
+                btn.innerText = 'Save';
+            
+                if(option.data === 'id'){
+                    btn.innerText = 'Copy';
+                    btn.style.backgroundColor = '#43b581';
+            
+                    btn.addEventListener('click', (e) =>{
+                        let value = e.target.parentNode.children[1].value;
+            
+                        navigator.clipboard.writeText(value).then(function() {
+                            // console.log('Async: Copying to clipboard was successful!');
+                          }, function(err) {
+                            console.error('Async: Could not copy text: ', err);
+                          });
+                    });
+                }else if(option.callback){
+                    btn.addEventListener('click', option.callback);
+                }
+            
+                div.classList.add('channelOption');
+                div.setAttribute('channel', option.channel.id);
+                div.setAttribute('guild', option.channel.guild.id);
+                if(option.method !== '' || option.method !== undefined)
+                    div.setAttribute('method', option.method);
+                div.setAttribute('originalValue', option.channel[option.data]);
+            
+                div.append(name);
+                div.append(input);
+                if((option.method !== '' && option.method !== undefined) || option.data==='id') div.append(btn);
+            
+                chatContent.append(div);
+
+                break;
+            }
+        }
+    }
 }
 
 function error(content = ''){

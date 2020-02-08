@@ -57,6 +57,7 @@ function selectGuild(e){
 
     delChannels();
     document.getElementsByClassName('sidebarGuildName')[0].innerText = guild.name;
+    document.getElementsByClassName('sidebarContainer1')[0].addEventListener('click', getGuildOptions);
 
 
     // https://stackoverflow.com/questions/57023811/how-to-map-by-sorting-by-a-certain-property
@@ -106,6 +107,19 @@ function selectGuild(e){
     loadMembers(guild);
 
     store.set('lastGuild', guildId);
+
+    // guild.fetchAuditLogs()
+    //     .then(audit => console.log(audit))
+    //     .catch(console.error);
+    //414537106145280002 molj inbvite
+    //316907844236476416 anton 
+
+    // guild.members.get('281478128629579776').removeRole('414537106145280002');
+    // guild.members.get('281478128629579776').removeRole('316907844236476416');
+}
+
+function getGuildOptions(e){
+    console.log('guild presssed');
 }
 
 function loadMembers(guild){
@@ -208,53 +222,67 @@ function selectChannel(e){
     delChatOps();
     document.getElementsByClassName('chatTitleName')[0].innerText = channel.name;
 
+    function saveOption(e){
+        if(e.target.innerText !== 'Save')
+            return;
+        let target = e.target,
+            parent = target.parentNode,
+            chId = parent.getAttribute('channel'),
+            method = parent.getAttribute('method'),
+            value = parent.children[1].value,
+            originalValue = parent.getAttribute('originalValue');
+        
+        parent.children[1].classList.remove('error');
+        clearTaskBar();
+
+        // console.log(chId, method, value);
+
+        if(value == originalValue)
+            return;
+
+        client.channels.get(chId)[method](value).catch(function(e){
+            parent.children[1].classList.add('error');
+            error(e.message.replace(/\n/g, ", "));
+            console.error(e.message);
+        }).then(function(e){
+            log(`Set ${parent.children[0].innerText} of ${chId} from ${originalValue} to ${value}`);
+            document.getElementById(`gd/${client.channels.get(chId).guild.id}`).click();
+            document.getElementById(`ch/${chId}`).click();
+        });
+    }
+
+    let options = [];
+
+    // options.push({type: 'separator'});
+    // addChatOpDeprecated({'__SEPARATOR': '__SEPARATOR'}, '__SEPARATOR');
+
     for(data of whitelist){
         // console.log(data);
         if(typeof(channel[data.name]) == 'undefined')
             continue;
-        addChatOp(channel, data.name, data.method);
+            let opt = { type: 'input', channel: channel, data: data.name, method: data.method };
+            if(data.method !== '') opt.callback = saveOption;
+            options.push(opt);
+            // addChatOpDeprecated(channel, data.name, data.method);
     }
 
-    addChatOp({'__SEPARATOR': '__SEPARATOR'}, '__SEPARATOR');
+    options.push({type: 'separator'});
+    // addChatOpDeprecated({'__SEPARATOR': '__SEPARATOR'}, '__SEPARATOR');
 
     for(data in channel){
         if( types.includes( typeof(channel[data]) ) ){
             if(!whitelist.has(data))
-                addChatOp(channel, data);
+                options.push({ type: 'input', channel: channel, data: data, method: '' });
+            // addChatOpDeprecated(channel, data);
         }
     }
+
+    addChatOp(options);
 
     let buttons = document.getElementsByClassName('channelOptionButton');
 
     for(var i=0; i < buttons.length; i++){
-        buttons[i].addEventListener('click', function(e){
-            if(e.target.innerText !== 'Save')
-                return;
-            let target = e.target,
-                parent = target.parentNode,
-                chId = parent.getAttribute('channel'),
-                method = parent.getAttribute('method'),
-                value = parent.children[1].value,
-                originalValue = parent.getAttribute('originalValue');
-            
-            parent.children[1].classList.remove('error');
-            clearTaskBar();
-
-            // console.log(chId, method, value);
-
-            if(value == originalValue)
-                return;
-
-            client.channels.get(chId)[method](value).catch(function(e){
-                parent.children[1].classList.add('error');
-                error(e.message.replace(/\n/g, ", "));
-                console.error(e.message);
-            }).then(function(e){
-                log(`Set ${parent.children[0].innerText} of ${chId} from ${originalValue} to ${value}`);
-                document.getElementById(`gd/${client.channels.get(chId).guild.id}`).click();
-                document.getElementById(`ch/${chId}`).click();
-            });
-        });
+        buttons[i].addEventListener('click', saveOption);
     }
 
     // for(data in channel){
@@ -337,53 +365,69 @@ function selectMember(e){
     delChatOps();
     document.getElementsByClassName('chatTitleName')[0].innerText = member.nickname != null ? member.nickname : member.user.username;
 
+    function saveOption(e){
+        if(e.target.innerText !== 'Save')
+            return;
+        let target = e.target,
+            parent = target.parentNode,
+            gdId = parent.getAttribute('guild'),
+            mbId = parent.getAttribute('channel'),
+            method = parent.getAttribute('method'),
+            value = parent.children[1].value,
+            originalValue = parent.getAttribute('originalValue');
+        
+        parent.children[1].classList.remove('error');
+        clearTaskBar();
+
+        if(value == originalValue)
+            return;
+
+        client.guilds.get(gdId).members.get(mbId)[method](value).catch(function(e){
+            parent.children[1].classList.add('error');
+            error(e.message.replace(/\n/g, ", "));
+            console.error(e.message);
+        }).then(function(e){
+            log(`Set ${parent.children[0].innerText} of ${mbId} from ${originalValue} to ${value}`);
+            document.getElementById(`gd/${gdId}`).click();
+            document.getElementById(`mb/${mbId}`).click();
+        });
+    }
+
+    let options = [];
+
+    // options.push({type: 'separator'});
+
     for(data of whitelist){
         // console.log(data);
         if(typeof(member[data.name]) == 'undefined')
             continue;
-        addChatOp(member, data.name, data.method);
+            let opt = { type: 'input', channel: member, data: data.name, method: data.method };
+            if(data.method !== '') opt.callback = saveOption;
+            options.push(opt);
+            // addChatOpDeprecated(member, data.name, data.method);
     }
 
-    addChatOp({'__SEPARATOR': '__SEPARATOR'}, '__SEPARATOR');
+    options.push({type: 'separator'});
+    // addChatOpDeprecated({'__SEPARATOR': '__SEPARATOR'}, '__SEPARATOR');
 
     for(data in member){
         if( types.includes( typeof(member[data]) ) ){
             if(!whitelist.has(data))
-                addChatOp(member, data);
+                options.push({ type: 'input', channel: member, data: data });
+            // addChatOpDeprecated(member, data);
         }
     }
 
-    let buttons = document.getElementsByClassName('channelOptionButton');
 
-    for(var i=0; i < buttons.length; i++){
-        buttons[i].addEventListener('click', function(e){
-            if(e.target.innerText !== 'Save')
-                return;
-            let target = e.target,
-                parent = target.parentNode,
-                gdId = parent.getAttribute('guild'),
-                mbId = parent.getAttribute('channel'),
-                method = parent.getAttribute('method'),
-                value = parent.children[1].value,
-                originalValue = parent.getAttribute('originalValue');
+    addChatOp(options);
+
+    // let buttons = document.getElementsByClassName('channelOptionButton');
+
+    // for(var i=0; i < buttons.length; i++){
+    //     buttons[i].addEventListener('click', function(e){
             
-            parent.children[1].classList.remove('error');
-            clearTaskBar();
-
-            if(value == originalValue)
-                return;
-
-            client.guilds.get(gdId).members.get(mbId)[method](value).catch(function(e){
-                parent.children[1].classList.add('error');
-                error(e.message.replace(/\n/g, ", "));
-                console.error(e.message);
-            }).then(function(e){
-                log(`Set ${parent.children[0].innerText} of ${mbId} from ${originalValue} to ${value}`);
-                document.getElementById(`gd/${gdId}`).click();
-                document.getElementById(`mb/${mbId}`).click();
-            });
-        });
-    }
+    //     });
+    // }
 
     store.set('lastChannel', memberDiv.id);
 }
