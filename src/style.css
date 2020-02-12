@@ -1940,3 +1940,86 @@ a:-webkit-any-link:visited, a:-webkit-any-link:active, a:-webkit-any-link{
     background-color: var(--background-modifier-accent);
     margin-bottom: 20px;
 }
+  
+.chatBtn:hover{
+    /* background-color: #7289dab0; */
+    opacity: 90%;
+}
+
+.chatBtn:active{
+    opacity: 80%;
+}
+
+.chatBtnGroup{
+    display: flex;
+    flex-wrap: wrap;
+    /* width: 100%; */
+    height: auto;
+    margin: 0px 10px 16px;
+}
+
+.chatBtnGroup:first-child{
+    margin-top: 20px;
+}
+
+.channelOptionButton.chatBtn{
+    flex: 0 48%;
+    margin: 4px;
+    border-radius: 3px;
+    width: 100%;
+}
+
+.channelOptionButton.chatBtn:disabled{
+    opacity: 80%;
+    cursor: not-allowed;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

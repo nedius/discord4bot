@@ -57,6 +57,7 @@ function selectGuild(e){
 
     delChannels();
     document.getElementsByClassName('sidebarGuildName')[0].innerText = guild.name;
+    document.getElementsByClassName('sidebarGuildName')[0].setAttribute('guild', guild.id);
     document.getElementsByClassName('sidebarContainer1')[0].addEventListener('click', getGuildOptions);
 
 
@@ -119,7 +120,10 @@ function selectGuild(e){
 }
 
 function getGuildOptions(e){
-    console.log('guild presssed');
+    let target = e.target,
+        gdId = target.getAttribute('guild'),
+        guild = client.guilds.get(gdId);
+    console.log(guild);
 }
 
 function loadMembers(guild){
@@ -366,36 +370,74 @@ function selectMember(e){
     document.getElementsByClassName('chatTitleName')[0].innerText = member.nickname != null ? member.nickname : member.user.username;
 
     function saveOption(e){
-        if(e.target.innerText !== 'Save')
+        if(e.target.innerText === 'Copy')
             return;
         let target = e.target,
-            parent = target.parentNode,
+            opBtn = target.hasAttribute("opBtn"),
+            parent = opBtn ? target : target.parentNode,
             gdId = parent.getAttribute('guild'),
             mbId = parent.getAttribute('channel'),
             method = parent.getAttribute('method'),
-            value = parent.children[1].value,
+            value = opBtn ? parent.getAttribute('originalValue') : parent.children[1].value,
             originalValue = parent.getAttribute('originalValue');
-        
-        parent.children[1].classList.remove('error');
+            
+        if(opBtn){
+            value = (value == 'true');
+            value = !value;
+        }
+        if(!opBtn) parent.children[1].classList.remove('error');
         clearTaskBar();
 
+        console.log(target, opBtn, parent, gdId, mbId, method, value, originalValue);
+            
         if(value == originalValue)
             return;
 
         client.guilds.get(gdId).members.get(mbId)[method](value).catch(function(e){
-            parent.children[1].classList.add('error');
+            if(!opBtn) parent.children[1].classList.add('error');
             error(e.message.replace(/\n/g, ", "));
             console.error(e.message);
         }).then(function(e){
-            log(`Set ${parent.children[0].innerText} of ${mbId} from ${originalValue} to ${value}`);
-            document.getElementById(`gd/${gdId}`).click();
-            document.getElementById(`mb/${mbId}`).click();
+            if(opBtn){
+                log(`${parent.innerText}${parent.innerText=='Mute'||parent.innerText=='Unute'?'d':''}${parent.innerText=='Deaf'||parent.innerText=='Undeaf'?'ened':''}${parent.innerText=='Disconnect'?'ed':''} ${mbId}`);
+            }else
+                log(`Set ${parent.children[0].innerText} of ${mbId} from ${originalValue} to ${value}`);
+                document.getElementById(`gd/${gdId}`).click();
+                document.getElementById(`mb/${mbId}`).click();
+                // setTimeout(()=>{
+                //     document.getElementById(`gd/${gdId}`).click();
+                //     document.getElementById(`mb/${mbId}`).click();
+                // }, 100);
         });
+    }
+
+    function sendToVoid(e){
+        let target = e.target,
+            gdId = target.getAttribute('guild'),
+            mbId = target.getAttribute('channel');
+
+        client.guilds.get(gdId).members.get(mbId).setVoiceChannel(target.innerText==='Disconnect'?null:client.guilds.get(gdId).afkChannelID);
     }
 
     let options = [];
 
-    // options.push({type: 'separator'});
+    if(member.voiceChannelID){
+        let afkString = `Send to ${member.guild.afkChannel ? member.guild.afkChannel.name : 'afk'} channel`;
+        if(member.guild.afkChannel)
+            afkString = `Send to ${member.guild.afkChannel.name} channel`;
+        else
+            afkString = `There is no afk channel ¯\\_(ツ)_/¯`;
+
+        let opt = { type: 'btngroup', member: member,
+                    btns:[  { type: 'toggle', name: 'Mute', method:'setMute', state: member.serverMute, callback: saveOption },
+                            { type: 'toggle', name: 'Deaf', method:'setDeaf', state: member.serverDeaf, callback: saveOption },
+                            { type: 'btn', name: afkString, method:'', disabled: (!member.guild.afkChannel ? true : undefined), callback: sendToVoid }, 
+                            { type: 'btn', name: `Disconnect`, method:'', callback: sendToVoid }]};
+
+        options.push(opt);
+
+        options.push({type: 'separator'});
+    }
 
     for(data of whitelist){
         // console.log(data);

@@ -593,10 +593,12 @@ let someRandomObj =
 [
     { type: 'separator' },
     { type: 'input', channel: {}, data: '', method: '', callback: ()=>{} },
+    { type: 'btngroup', channel: {}, btns:[ { type: 'toggle', name: 'a/b', method:'', callback: ()=>{} },
+                                            { type: 'btn', name: 'c', method:'', enable: true, callback: ()=>{} } ]},
 ];
 
 function addChatOp(options){
-    console.log(options);
+    // console.log(options);
 
     for(option of options){
         switch(option.type){
@@ -620,7 +622,7 @@ function addChatOp(options){
             
                 input.classList.add('channelOptionInput');
                 input.value = option.channel[option.data];
-                if(option.method=='') input.readOnly = true;
+                if(option.method=='' || !option.method) input.readOnly = true;
                 input.type = typeof(option.channel[option.data]);
             
                 btn.classList.add('channelOptionButton');
@@ -655,6 +657,45 @@ function addChatOp(options){
                 if((option.method !== '' && option.method !== undefined) || option.data==='id') div.append(btn);
             
                 chatContent.append(div);
+
+                break;
+            }
+            case 'btngroup':{
+                let chatContent = document.getElementById('chatContent'),
+                    chatBtnGroup = document.createElement('div'),
+                    btn = document.createElement('button');
+
+                chatBtnGroup.classList.add('chatBtnGroup');
+                btn.classList.add('channelOptionButton');
+                btn.classList.add('chatBtn');
+
+                // console.log(option);
+
+                for(op of option.btns){
+                    let localBtn = btn.cloneNode();
+
+                    localBtn.innerText = op.name;
+
+                    localBtn.setAttribute('channel', option.member.id);
+                    localBtn.setAttribute('guild', option.member.voiceChannel.guild.id);
+                    if(op.method !== '' || op.method !== undefined)
+                        localBtn.setAttribute('method', op.method);
+                    localBtn.setAttribute('originalValue', op.state);
+
+                    localBtn.setAttribute('opBtn', '');
+
+                    if(op.callback) localBtn.addEventListener('click', op.callback);
+                    if(op.state) localBtn.innerText = `Un${op.name.toLowerCase()}`;
+                    // if(op.type === 'toggle'){
+                    //     localBtn;
+                    //     localBtn.addEventListener('click', btnToggle);
+                    // }
+                    if(op.disabled) localBtn.disabled = op.disabled;
+
+                    chatBtnGroup.append(localBtn);
+                }
+
+                chatContent.append(chatBtnGroup);
 
                 break;
             }
