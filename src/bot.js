@@ -8,8 +8,17 @@ module.exports = {
     client: client
 };
 
+var ping = 0;
+
 client.on('ready', () => {
     console.log(`Logged in as ${client.user.tag}!`);
+
+    setInterval(() => {
+        if(ping != client.ping){
+            document.getElementById('pingSpan').innerText = `Ping: ${Math.round(client.ping)}`;
+            ping = client.ping;
+        }
+    }, 5000);
 
     setClientUser(client.user);
 
@@ -24,10 +33,17 @@ client.on('ready', () => {
     try {
         if(store.has('lastGuild'))
             document.getElementById(store.get('lastGuild')).click();
+    } catch (error) {
+        // console.log(error);
+        if(document.getElementsByClassName('listItem')[2]) document.getElementsByClassName('listItem')[2].click();
+    }  
+
+    try {      
         if(store.has('lastChannel'))
             document.getElementById(store.get('lastChannel')).click();
     } catch (error) {
-        console.log(error);
+        // console.log(error);
+        if(document.getElementsByClassName('sidebarChannelContainer')[0]) document.getElementsByClassName('sidebarChannelContainer')[0].click();
     }
     
     goToApp();
@@ -57,6 +73,7 @@ function selectGuild(e){
 
     delChannels();
     document.getElementsByClassName('sidebarGuildName')[0].innerText = guild.name;
+    document.getElementsByClassName('sidebarGuildName')[0].id = `gdo/${guild.id}`;
     document.getElementsByClassName('sidebarGuildName')[0].setAttribute('guild', guild.id);
     document.getElementsByClassName('sidebarContainer1')[0].addEventListener('click', getGuildOptions);
 
@@ -120,10 +137,104 @@ function selectGuild(e){
 }
 
 function getGuildOptions(e){
-    let target = e.target,
-        gdId = target.getAttribute('guild'),
+    let target = e.target;
+    while(!target.classList.contains('sidebarGuildName')){
+        target = target.children[0];
+    }
+
+
+    let gdId = target.getAttribute('guild'),
         guild = client.guilds.get(gdId);
-    console.log(guild);
+    // console.log(guild);
+
+    let types = [   'string',
+                    'number',
+                    'boolean',
+                    'bigint',
+                    // 'undefined',
+                    'object',
+    ];
+    let whitelist = [   
+                        {name : 'name', method : "setName"},
+                        {name : 'id', method : ""},
+                        {name : 'afkChannelID', method : ""},
+                        {name : 'memberCount', method : ""},
+                        {name : 'createdAt', method : ""},
+                        {name : 'joinedAt', method : ""},
+    ];
+
+    whitelist.has = function(string){
+        // for(data of this){
+        for(var i = 0 ; i < this.length; i++){
+            // console.log(data);
+            if(this[i].name === string){
+                // console.log(data.name, '=', string);
+                return true;
+            } 
+        }
+        return false;
+    };
+
+    function saveOption(e){
+        if(e.target.innerText === 'Copy')
+            return;
+        let target = e.target,
+            parent = target.parentNode,
+            gdId = parent.getAttribute('channel'),
+            method = parent.getAttribute('method'),
+            value =parent.children[1].value,
+            originalValue = parent.getAttribute('originalValue');
+            
+        parent.children[1].classList.remove('error');
+        clearTaskBar();
+
+        // console.log(target, opBtn, parent, gdId, mbId, method, value, originalValue);
+            
+        if(value == originalValue)
+            return;
+
+        client.guilds.get(gdId)[method](value).catch(function(e){
+            parent.children[1].classList.add('error');
+            error(e.message.replace(/\n/g, ", "));
+            console.error(e.message);
+        }).then(function(e){
+            log(`Set ${parent.children[0].innerText} of ${gdId} from ${originalValue} to ${value}`);
+            document.getElementById(`gd/${gdId}`).click();
+            document.getElementById(`gdo/${gdId}`).click();
+            // setTimeout(()=>{
+            //     document.getElementById(`gd/${gdId}`).click();
+            //     document.getElementById(`mb/${mbId}`).click();
+            // }, 100);
+        });
+    }
+
+    delChatOps();
+    document.getElementsByClassName('chatTitleName')[0].innerText = guild.name;
+    let options = [];
+
+    for(data of whitelist){
+        // console.log(data);
+        if(typeof(guild[data.name]) == 'undefined')
+            continue;
+            let opt = { type: 'input', channel: guild, data: data.name, method: data.method };
+            if(data.method !== '') opt.callback = saveOption;
+            options.push(opt);
+            // addChatOpDeprecated(channel, data.name, data.method);
+    }
+
+    options.push({type: 'separator'});
+    // addChatOpDeprecated({'__SEPARATOR': '__SEPARATOR'}, '__SEPARATOR');
+
+    for(data in guild){
+        if( types.includes( typeof(guild[data]) ) ){
+            if(!whitelist.has(data))
+                options.push({ type: 'input', channel: guild, data: data, method: '' });
+            // addChatOpDeprecated(channel, data);
+        }
+    }
+
+    addChatOp(options);
+    store.set('lastChannel', `gdo/${guild.id}`);
 }
 
 function loadMembers(guild){
@@ -283,11 +394,11 @@ function selectChannel(e){
 
     addChatOp(options);
 
-    let buttons = document.getElementsByClassName('channelOptionButton');
+    // let buttons = document.getElementsByClassName('channelOptionButton');
 
-    for(var i=0; i < buttons.length; i++){
-        buttons[i].addEventListener('click', saveOption);
-    }
+    // for(var i=0; i < buttons.length; i++){
+    //     buttons[i].addEventListener('click', saveOption);
+    // }
 
     // for(data in channel){
     //     // if( types.includes( typeof(channel[data]) )){
@@ -388,7 +499,7 @@ function selectMember(e){
         if(!opBtn) parent.children[1].classList.remove('error');
         clearTaskBar();
 
-        console.log(target, opBtn, parent, gdId, mbId, method, value, originalValue);
+        // console.log(target, opBtn, parent, gdId, mbId, method, value, originalValue);
             
         if(value == originalValue)
             return;

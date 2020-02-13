@@ -627,8 +627,8 @@ function addChatOp(options){
             
                 btn.classList.add('channelOptionButton');
                 btn.innerText = 'Save';
-            
-                if(option.data === 'id'){
+
+                if(option.data === 'id' || option.data === 'afkChannelID'){
                     btn.innerText = 'Copy';
                     btn.style.backgroundColor = '#43b581';
             
@@ -647,14 +647,15 @@ function addChatOp(options){
             
                 div.classList.add('channelOption');
                 div.setAttribute('channel', option.channel.id);
-                div.setAttribute('guild', option.channel.guild.id);
+                if(option.channel.guild) div.setAttribute('guild', option.channel.guild.id);
+                // if(option.channel.region) div.setAttribute('guild', option.id);
                 if(option.method !== '' || option.method !== undefined)
                     div.setAttribute('method', option.method);
                 div.setAttribute('originalValue', option.channel[option.data]);
             
                 div.append(name);
                 div.append(input);
-                if((option.method !== '' && option.method !== undefined) || option.data==='id') div.append(btn);
+                if((option.method !== '' && option.method !== undefined) || option.data==='id' || option.data==='afkChannelID') div.append(btn);
             
                 chatContent.append(div);
 
