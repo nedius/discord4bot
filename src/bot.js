@@ -98,7 +98,7 @@ function selectGuild(e){
         const category = guild.channels.get(categoryID);
         if (category) addChannel(category);
         for (let [, child] of children){
-            addChannel(child);
+            addChannel(child, selectChannel, selectChannelForChat);
             if(child.type == 'voice' && child.members.size > 0){
                 for(let [, member] of child.members){
                     // console.log(member)
@@ -119,7 +119,8 @@ function selectGuild(e){
     // console.log(list.join('\n'));
 
     guild.channels.tap(channel =>{ 
-        document.getElementById('ch/' + channel.id).addEventListener('click', selectChannel);
+        if(channel.type === 'category')
+            document.getElementById('ch/' + channel.id).addEventListener('click', selectChannel);
     })
 
     loadMembers(guild);
@@ -208,7 +209,7 @@ function getGuildOptions(e){
         });
     }
 
-    delChatOps();
+    clearChat();
     document.getElementsByClassName('chatTitleName')[0].innerText = guild.name;
     let options = [];
 
@@ -277,6 +278,58 @@ function loadMembers(guild){
     // })
 }
 
+function selectChannelForChat(e){
+    let channelId = e.target;
+
+    if(!channelId.classList.contains('sidebarChannelNameOption'))
+        while(channelId.parentNode){
+            if( channelId.classList.contains('sidebarChannelContainer') )
+                break;
+            channelId = channelId.parentNode;
+        }
+
+    channelId = channelId.id
+
+    // console.log(channelId);
+
+    if(channelId[2] === 'c'){
+
+        let channel = client.channels.get(channelId.substring(4));
+
+        clearChat();
+        document.getElementsByClassName('chatTitleName')[0].innerText = channel.name;
+        // console.log(`open chat ${channel.guild.name} ${channel.name}/${channel.id}`);
+        channel.fetchMessages({ limit: 10 })//{ limit: 50 }
+            .then(messages => {
+
+                function sorting(a,b){
+                    return a.id - b.id;
+                }
+
+                console.log(`Received ${messages.size} messages`)
+                console.log(messages.sort(sorting));
+
+                let messagesText = "";
+                let obj = [];
+
+                messages.sort(sorting).tap(message =>{
+                    var time = timestampToObject(message.createdTimestamp);
+                    obj.push({date: time, message: message});
+                    messagesText += `${time.hour}:${time.minute} ${message.member.nickname !== null ? message.member.nickname : message.author.username} ${message.content}\n`;
+                });
+
+                console.log(messagesText);
+                document.getElementById('chatContent').innerText = messagesText;
+
+                createChat(obj);
+            })
+            .catch(console.error);
+
+        store.set('lastChannel', channelId); //word-break: break-all;
+    }
+}
+
+
 function selectChannel(e){
     // console.log(e.target);
     let channelId = e.target;
@@ -322,7 +375,7 @@ function selectChannel(e){
             selectVoiceMember(channelId.id.substring(1));
             return;
         }
-        if( channelId.classList.contains('sidebarChannelContainer') || channelId.classList.contains('sidebarCategoryContainer') )
+        if( channelId.classList.contains('sidebarChannelNameOption') || channelId.classList.contains('sidebarChannelContainer') || channelId.classList.contains('sidebarCategoryContainer') )
             break;
         channelId = channelId.parentNode;
     }
@@ -330,11 +383,14 @@ function selectChannel(e){
         channelId = channelId.id;
     // console.log(channelId);
 
+    if(channelId[2] === 'c')
+        return;
+
     let channel = client.channels.get(channelId.substring(3));
     // let guildCh = client.channels.get(channelId.substring(3)).guild.channels.get(channelId.substring(3));
 
     // console.log(channel);
-    delChatOps();
+    clearChat();
     document.getElementsByClassName('chatTitleName')[0].innerText = channel.name;
 
     function saveOption(e){
@@ -477,7 +533,7 @@ function selectMember(e){
     
     // console.log(member);
 
-    delChatOps();
+    clearChat();
     document.getElementsByClassName('chatTitleName')[0].innerText = member.nickname != null ? member.nickname : member.user.username;
 
     function saveOption(e){
