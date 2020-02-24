@@ -54,6 +54,11 @@ client.on('message', msg => {
 //     msg.reply('pong');
 //   }
     // console.log(msg.content);
+
+    let channelId = msg.channel.id,
+        channel = document.getElementById(`chc/${channelId}`);
+
+    if(channel) channel.click();
 });
 
 client.on("error", (e) => {
@@ -299,27 +304,27 @@ function selectChannelForChat(e){
         clearChat();
         document.getElementsByClassName('chatTitleName')[0].innerText = channel.name;
         // console.log(`open chat ${channel.guild.name} ${channel.name}/${channel.id}`);
-        channel.fetchMessages({ limit: 10 })//{ limit: 50 }
+        channel.fetchMessages()//{ limit: 50 }
             .then(messages => {
 
                 function sorting(a,b){
                     return a.id - b.id;
                 }
 
-                console.log(`Received ${messages.size} messages`)
-                console.log(messages.sort(sorting));
+                // console.log(`Received ${messages.size} messages`)
+                // console.log(messages.sort(sorting));
 
-                let messagesText = "";
+                // let messagesText = "";
                 let obj = [];
 
                 messages.sort(sorting).tap(message =>{
                     var time = timestampToObject(message.createdTimestamp);
                     obj.push({date: time, message: message});
-                    messagesText += `${time.hour}:${time.minute} ${message.member.nickname !== null ? message.member.nickname : message.author.username} ${message.content}\n`;
+                    // messagesText += `${time.hour}:${time.minute} ${message.member.nickname !== null ? message.member.nickname : message.author.username} ${message.content}\n`;
                 });
 
-                console.log(messagesText);
-                document.getElementById('chatContent').innerText = messagesText;
+                // console.log(messagesText);
+                // document.getElementById('chatContent').innerText = messagesText;
 
                 createChat(obj);
             })

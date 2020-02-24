@@ -880,15 +880,62 @@ function timestampToObject(timestamp){
                 year: date.getFullYear(),
                 month: date.getMonth()+1,
                 day: date.getDate(),
-                hour: date.getHours()+1,
+                hour: date.getHours(),
                 minute: date.getMinutes(),
-                second: date.getSeconds()+1,
-                milisecond: date.getMilliseconds()+1
+                second: date.getSeconds(),
+                milisecond: date.getMilliseconds()
             };
 }
 
 function createChat(obj){
-    console.log(obj);
+    // console.log(obj);
     document.getElementById('chatContent').style = 'overflow-y: hidden;';
+
+    let chatContent = document.getElementById('chatContent'),
+        chatWrapper = document.createElement('div'),
+        messageWrapper = document.createElement('div'),
+        messageContainer = document.createElement('div'),
+        messageTime = document.createElement('span'),
+        messageAuthor = document.createElement('span'),
+        messageContent = document.createElement('span'),
+        messageAttachment = document.createElement('div');
+
+    chatWrapper.classList.add("chatWrapper");
+    messageWrapper.classList.add('messageWrapper');
+    messageContainer.classList.add('messageContainer');
+    messageTime.classList.add('messageTime');
+    messageAuthor.classList.add('messageAuthor');
+    messageContent.classList.add('messageContent');
+    messageAttachment.classList.add('messageAttachment');
+
+    obj.forEach(data =>{
+        let wrapper = messageWrapper.cloneNode(),
+            container = messageContainer.cloneNode(),
+            time = messageTime.cloneNode(),
+            author = messageAuthor.cloneNode(),
+            content = messageContent.cloneNode(),
+            attachment = messageAttachment.cloneNode();
+
+        time.innerText = `${data.date.hour}:${data.date.minute < 10 ? '0' : ''}${data.date.minute}`;
+        author.innerText = `${data.message.member.nickname !== null ? data.message.member.nickname : data.message.author.username}`;
+        if(data.message.member.colorRole) author.style.color = data.message.member.colorRole.hexColor;
+        content.innerText = `${data.message.content}`;
+        // attachment.innerText = `${data.date.hour}:${data.date.minute}`;
+
+        // document.getElementById('chatContent').innerText += `${data.date.hour}:${data.date.minute} ${data.message.member.nickname !== null ? data.message.member.nickname : data.message.author.username} ${data.message.content}\n`;
+
+        container.append(time);
+        container.append(author);
+        container.append(content);
+        // container.append(attachment);
+        // wrapper.append(time);
+        wrapper.append(container);
+        chatWrapper.append(wrapper);
+    });
+
+    chatContent.append(chatWrapper);
+    // document.getElementById('chatContent').innerText += obj;
+
+    chatContent.getElementsByClassName('chatWrapper')[0].scrollTop = chatContent.getElementsByClassName('chatWrapper')[0].scrollHeight;
 
 }
