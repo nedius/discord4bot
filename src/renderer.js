@@ -779,7 +779,8 @@ function addMemeber(user){
         memberName = document.createElement('div'),
         memberSubText = document.createElement('div'),
         memberActivity = document.createElement('div'),
-        memberGroup = document.createElement('header');
+        memberGroup = document.createElement('header'),
+        botTag = document.createElement('span');
 
     if(user.presence.status !== 'offline'){
         if(user.hoistRole){
@@ -792,12 +793,20 @@ function addMemeber(user){
                 memberDiv.append(memberGroup);
             }
         }else{
-            if(!document.getElementById(`rl/${user.highestRole.id}`) && user.highestRole.name == '@everyone'){
+            if(!document.getElementById(`rl/${user.highestRole.id}`) && user.highestRole.hoist){// && user.highestRole.name !== '@everyone'){
                 memberGroup.classList.add('memberGroup');
                 memberGroup.id = `rl/${user.highestRole.id}`;
                 memberGroup.innerText = `${user.highestRole.name === '@everyone' ? 'online' : user.highestRole.name} - ${user.highestRole.members.filter(member => member.presence.status !== 'offline' && member.hoistRole === null).size}`;
                 
                 memberDiv.append(memberGroup);
+            }else{
+                if(!document.getElementById(`rl/online`)){
+                    memberGroup.classList.add('memberGroup');
+                    memberGroup.id = `rl/online`;
+                    memberGroup.innerText = `online - ${user.guild.members.filter(member => !member.hoistRole && !member.highestRole.hoist && member.presence.status !== 'offline').size}`;
+                    
+                    memberDiv.append(memberGroup);
+                }
             }
         }
     }else{
@@ -844,11 +853,17 @@ function addMemeber(user){
 
     memberActivity.innerText = status;
 
+    botTag.classList.add('botTag');
+    botTag.innerText = 'bot';
+
     memberSubText.append(memberActivity);
     memberName.innerText = user.nickname != null ? user.nickname : user.user.username;
 
     if(user.colorRole) memberName.style.color = user.colorRole.hexColor;
 
+    // console.log(user)
+
+    if(user.user.bot) memberName.append(botTag);
     memberContent.append(memberName);
     memberContent.append(memberSubText);
 
@@ -856,9 +871,18 @@ function addMemeber(user){
     if( avatarUrl.indexOf('?size') )
         avatarUrl = avatarUrl.substring(0, avatarUrl.indexOf('?')) + '?size=64';
 
+    // memberAvatarMask
+    let memberAvatarMaskActivity = memberAvatarMask.cloneNode();
+    // memberAvatarMaskActivity.width = '64px';
+    // memberAvatarMaskActivity.height = '64px';
+    memberAvatarMaskActivity.src = `./img/${user.presence.status}.png`;
+    memberAvatarMaskActivity.style = 'border-radius: 0;';
+
     memberAvatarMask.src = avatarUrl !== '?size=64' ? avatarUrl : './img/placeholder.png';
+
     memberAvatarMask.alt = user.user.username + ' avatar';
     memberAvatarWrapper.append(memberAvatarMask);
+    if(user.presence.status !== 'offline') memberAvatarWrapper.append(memberAvatarMaskActivity);
     memberAvatar.append(memberAvatarWrapper);
 
     memberLayout.append(memberAvatar);
@@ -875,10 +899,25 @@ function delMembers(){
 }
 
 function timestampToObject(timestamp){
-    var date = new Date(timestamp);
+    let date = new Date(timestamp),
+        monthNames = [
+            "January",
+            "February",
+            "March",
+            "April",
+            "May",
+            "June",
+            "July",
+            "August",
+            "September",
+            "October",
+            "November",
+            "December"
+        ];
     return {
                 year: date.getFullYear(),
                 month: date.getMonth()+1,
+                monthWord: monthNames[date.getMonth()],
                 day: date.getDate(),
                 hour: date.getHours(),
                 minute: date.getMinutes(),
@@ -887,36 +926,74 @@ function timestampToObject(timestamp){
             };
 }
 
-function createChat(obj){
-    // console.log(obj);
+function createChat(){
     document.getElementById('chatContent').style = 'overflow-y: hidden;';
 
     let chatContent = document.getElementById('chatContent'),
-        chatWrapper = document.createElement('div'),
+        chatWrapper = document.createElement('div');
+
+    chatWrapper.classList.add('chatWrapper');
+    chatContent.append(chatWrapper);
+}
+
+function updateChat(obj){
+    // console.log(obj);
+
+    let chatContent = document.getElementById('chatContent'),
+        chatWrapper = document.getElementsByClassName('chatWrapper')[0],
         messageWrapper = document.createElement('div'),
         messageContainer = document.createElement('div'),
         messageTime = document.createElement('span'),
         messageAuthor = document.createElement('span'),
         messageContent = document.createElement('span'),
-        messageAttachment = document.createElement('div');
+        messageAttachment = document.createElement('div'),
+        messageSeparator = document.createElement('div'),
+        messageSeparatorText = document.createElement('div'),
+        botTag = document.createElement('span');
 
-    chatWrapper.classList.add("chatWrapper");
+    if(!chatWrapper){
+        createChat();
+        chatWrapper = document.getElementsByClassName('chatWrapper')[0];
+    }
+
+    // chatWrapper.classList.add("chatWrapper");
     messageWrapper.classList.add('messageWrapper');
     messageContainer.classList.add('messageContainer');
     messageTime.classList.add('messageTime');
     messageAuthor.classList.add('messageAuthor');
     messageContent.classList.add('messageContent');
     messageAttachment.classList.add('messageAttachment');
+    messageSeparator.classList.add('messageSeparator');
+    messageSeparatorText.classList.add('messageSeparatorText');
+    botTag.classList.add('botTag');
 
     obj.forEach(data =>{
+        if(document.getElementById(`msg/${data.message.id}`))
+            return;
         let wrapper = messageWrapper.cloneNode(),
             container = messageContainer.cloneNode(),
             time = messageTime.cloneNode(),
             author = messageAuthor.cloneNode(),
             content = messageContent.cloneNode(),
-            attachment = messageAttachment.cloneNode();
+            attachment = messageAttachment.cloneNode(),
+            bot = botTag.cloneNode(),
+            
+            separator = messageSeparator.cloneNode(),
+            separatorText = messageSeparatorText.cloneNode()
+            separatorDiv = document.getElementById(`date/${data.date.day}/${data.date.month}/${data.date.year}`);
 
-        time.innerText = `${data.date.hour}:${data.date.minute < 10 ? '0' : ''}${data.date.minute}`;
+        // console.log(`date/${data.date.day}/${data.date.month}/${data.date.year}`, separatorDiv, !separatorDiv)
+        if(!separatorDiv){
+            separatorText.innerText = `${data.date.day} ${data.date.monthWord} ${data.date.year}`;
+            separator.append(separatorText);
+            separator.id = `date/${data.date.day}/${data.date.month}/${data.date.year}`;
+            chatWrapper.append(separator);
+        }
+
+        wrapper.id = `msg/${data.message.id}`;
+        bot.innerText = 'bot';
+
+        time.innerText = `${data.date.hour < 10 ? '0' : ''}${data.date.hour}:${data.date.minute < 10 ? '0' : ''}${data.date.minute}`;
         author.innerText = `${data.message.member.nickname !== null ? data.message.member.nickname : data.message.author.username}`;
         if(data.message.member.colorRole) author.style.color = data.message.member.colorRole.hexColor;
         content.innerText = `${data.message.content}`;
@@ -925,6 +1002,7 @@ function createChat(obj){
         // document.getElementById('chatContent').innerText += `${data.date.hour}:${data.date.minute} ${data.message.member.nickname !== null ? data.message.member.nickname : data.message.author.username} ${data.message.content}\n`;
 
         container.append(time);
+        if(data.message.author.bot) container.append(bot);
         container.append(author);
         container.append(content);
         // container.append(attachment);
@@ -933,7 +1011,7 @@ function createChat(obj){
         chatWrapper.append(wrapper);
     });
 
-    chatContent.append(chatWrapper);
+    // chatContent.append(chatWrapper);
     // document.getElementById('chatContent').innerText += obj;
 
     chatContent.getElementsByClassName('chatWrapper')[0].scrollTop = chatContent.getElementsByClassName('chatWrapper')[0].scrollHeight;

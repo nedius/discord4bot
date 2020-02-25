@@ -1401,17 +1401,26 @@ body{
     height: 32px;
 
     position: relative;
-    border-radius: 50%;
+    /* border-radius: 50%; */
 }
 
 .memberAvatarMask{
     pointer-events: none;
-    position: relative;
+    /* position: relative; */
+    position: absolute;
+    top: 0;
+    left: 0;
+
     display: block;
     height: 100%;
     width: auto;
 
     border-radius: 25px;
+}
+
+.memberAvatarMask:nth-child(2){
+    top: 3px;
+    left: 3px;
 }
 
 .memberContent{
@@ -2016,6 +2025,7 @@ a:-webkit-any-link:visited, a:-webkit-any-link:active, a:-webkit-any-link{
 }
 
 .messageWrapper{
+    position: relative;
 }
 
 .messageContainer{
@@ -2027,6 +2037,13 @@ a:-webkit-any-link:visited, a:-webkit-any-link:active, a:-webkit-any-link{
 .messageTime{ 
     margin-left: 5px;
     height: 100%;
+
+    /* text-align: right; */
+    /* font-size: 0.6875rem; */
+    line-height: 1.375rem;
+    margin-right: .25rem;
+    color: var(--text-muted);
+    text-indent: 0;
 }
 
 .messageAuthor{
@@ -2038,5 +2055,54 @@ a:-webkit-any-link:visited, a:-webkit-any-link:active, a:-webkit-any-link{
 }
 
 .messageAttachment{
+    position: relative;
+}
 
+.messageSeparator{
+    margin-bottom: 1.5rem;
+
+    position: relative;
+    left: auto;
+    right: auto;
+
+    z-index: 1;
+    height: 0;
+    border-top: thin solid var(--background-modifier-accent);
+    display: -webkit-box;
+    display: -ms-flexbox;
+    display: flex;
+    -webkit-box-align: center;
+    -ms-flex-align: center;
+    align-items: center;
+    -webkit-box-pack: center;
+    -ms-flex-pack: center;
+    justify-content: center;
+    position: relative;
+    -webkit-box-flex: 0;
+    -ms-flex: 0 0 auto;
+    flex: 0 0 auto;
+    pointer-events: none;
+    -webkit-box-sizing: border-box;
+    box-sizing: border-box;
+
+    margin: 24px .875rem 24px 1rem;
+
+    outline: 0;
+}
+
+.messageSeparatorText{
+    display: block;
+    -webkit-box-flex: 0;
+    -ms-flex: 0 0 auto;
+    flex: 0 0 auto;
+    padding: 2px 4px;
+    color: var(--text-muted);
+    background: var(--background-primary);
+    line-height: 13px;
+    font-size: 12px;
+    margin-top: -1px;
+    font-weight: 600;
+    border-radius: 8px;
+
+    outline: 0;
 }

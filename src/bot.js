@@ -58,7 +58,7 @@ client.on('message', msg => {
     let channelId = msg.channel.id,
         channel = document.getElementById(`chc/${channelId}`);
 
-    if(channel) channel.click();
+    if(channel && store.get('lastChannel') === `chc/${channelId}`) updateChat([{date: timestampToObject(msg.createdTimestamp), message: msg}]);
 });
 
 client.on("error", (e) => {
@@ -252,6 +252,13 @@ function loadMembers(guild){
     //     //     return b.highestRole.position - a.highestRole.position;
     //     // return b.hoistRole.position - a.hoistRole.position;
     // };
+    function nameSorter(a, b){
+        let aName = a.nickname != null ? a.nickname : a.user.username,
+            bName = b.nickname != null ? b.nickname : b.user.username;
+        if(aName < bName) return -1;
+        if(aName > bName) return 1
+        return 0;
+    }
 
     delMembers();
     // guild.members.sort(roleFilter).tap(member =>{
@@ -262,7 +269,7 @@ function loadMembers(guild){
     guild.roles.sort((a, b) => b.calculatedPosition - a.calculatedPosition).tap(role =>{
         if(role.hoist || role.name == '@everyone'){
             // console.log(role.name, role.position, role.calculatedPosition, role.members.size);
-            role.members.filter(member => member.presence.status !== 'offline').tap(member =>{
+            role.members.sort(nameSorter).filter(member => member.presence.status !== 'offline').tap(member =>{
                 // console.log(member.displayName);
                 if(!document.getElementById(`mb/${member.id}`)){
                     addMemeber(member);
@@ -272,7 +279,7 @@ function loadMembers(guild){
         } 
     })
 
-    guild.members.filter(member => member.presence.status === 'offline').tap(member =>{
+    guild.members.sort(nameSorter).filter(member => member.presence.status === 'offline').tap(member =>{
         addMemeber(member);
         document.getElementById(`mb/${member.id}`).addEventListener('click', selectMember);
     })
@@ -326,7 +333,7 @@ function selectChannelForChat(e){
                 // console.log(messagesText);
                 // document.getElementById('chatContent').innerText = messagesText;
 
-                createChat(obj);
+                updateChat(obj);
             })
             .catch(console.error);
 
