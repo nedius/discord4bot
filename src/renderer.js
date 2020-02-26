@@ -387,8 +387,11 @@ function setDeaf(user, state){
     if(user == undefined || state == undefined)
         return;
 
-    let voiceUser = document.getElementById(`vmb/${user.id}`),
-        voiceUserIcons = voiceUser.getElementsByClassName('voiceUserIcons')[0],
+    let voiceUser = document.getElementById(`vmb/${user.id}`);
+
+    if(!voiceUser) return;
+
+    let voiceUserIcons = voiceUser.getElementsByClassName('voiceUserIcons')[0],
         voiceUserIconsSpacing = document.createElement('div'),
         svg = document.createElement('svg');
 
@@ -413,8 +416,11 @@ function setMute(user, state){
     if(user == undefined || state == undefined)
         return;
 
-    let voiceUser = document.getElementById(`vmb/${user.id}`),
-        voiceUserIcons = voiceUser.getElementsByClassName('voiceUserIcons')[0],
+    let voiceUser = document.getElementById(`vmb/${user.id}`);
+
+    if(!voiceUser) return;
+
+    let voiceUserIcons = voiceUser.getElementsByClassName('voiceUserIcons')[0],
         voiceUserIconsSpacing = document.createElement('div'),
         svg = document.createElement('svg');
 
@@ -444,8 +450,11 @@ function setGoLive(user, state){
     if(user == undefined || state == undefined)
         return;
 
-    let voiceUser = document.getElementById(`vmb/${user.id}`),
-        voiceUserIcons = voiceUser.getElementsByClassName('voiceUserIcons')[0],
+    let voiceUser = document.getElementById(`vmb/${user.id}`);
+
+    if(!voiceUser) return;
+
+    let voiceUserIcons = voiceUser.getElementsByClassName('voiceUserIcons')[0],
         voiceUserIconsSpacing = document.createElement('div'),
         div = document.createElement('div'); // liveTag
 
@@ -782,6 +791,66 @@ function addMemeber(user){
         memberGroup = document.createElement('header'),
         botTag = document.createElement('span');
 
+    let statusIcons = {
+        online: `
+            <svg
+                class="memberAvatarMask"
+                viewBox="0 0 32.543749 32.543753">
+                <circle
+                    fill="var(--background-secondary)"
+                    cx="16.323847"
+                    cy="16.323847"
+                    r="16.323847" />
+                <circle
+                    fill="#43b581"
+                    cx="16.323847"
+                    cy="16.323847"
+                    r="10.422841" />
+            </svg>`,
+        idle: `
+            <svg
+                class="memberAvatarMask"
+                viewBox="0 0 32.543749 32.543753">
+                <circle
+                    fill="var(--background-secondary)"
+                    cx="16.323847"
+                    cy="16.323847"
+                    r="16.323847" />
+                <path
+                    fill="#FAA61A"
+                    transform="matrix(0.26458334,0,0,0.26458334,0,0)"
+                    d="M 69.484375,22.917969 C 74.294871,29.449671 77.142395,37.51584 77.142578,46.25 77.142121,68.005716 59.505729,85.642125 37.75,85.642578 35.014543,85.642521 32.343966,85.362844 29.765625,84.832031 36.937482,94.569992 48.478436,100.8923 61.5,100.89258 83.25573,100.89212 100.89212,83.25573 100.89258,61.5 100.89218,42.479712 87.412207,26.608819 69.484375,22.917969 Z"/>
+            </svg>`,
+        offline: `
+            <svg
+                class="memberAvatarMask"
+                viewBox="0 0 32.543749 32.543753">
+                <circle
+                    fill="var(--background-secondary)"
+                    cx="16.323847"
+                    cy="16.323847"
+                    r="16.323847" />
+                <path
+                    fill="#F04747"
+                    transform="matrix(0.26458334,0,0,0.26458334,0,0)"
+                    d="M 61.5,22.107422 A 39.393414,39.393414 0 0 0 22.107422,61.5 39.393414,39.393414 0 0 0 61.5,100.89258 39.393414,39.393414 0 0 0 100.89258,61.5 39.393414,39.393414 0 0 0 61.5,22.107422 Z M 29.769531,53.015625 h 63.460938 v 16.96875 H 29.769531 Z"/>
+            </svg>`,
+        dnd: `
+            <svg
+                class="memberAvatarMask"
+                viewBox="0 0 32.543749 32.543753">
+                <circle
+                    fill="var(--background-secondary)"
+                    cx="16.323847"
+                    cy="16.323847"
+                    r="16.323847" />
+                <path
+                    fill="#747F8D"
+                    transform="matrix(0.26458334,0,0,0.26458334,0,0)"
+                    d="M 61.5,22.107422 C 39.744271,22.107884 22.107884,39.744271 22.107422,61.5 22.107883,83.25573 39.74427,100.89212 61.5,100.89258 83.25573,100.89212 100.89212,83.25573 100.89258,61.5 100.89212,39.74427 83.25573,22.107883 61.5,22.107422 Z M 61.5,34.625 A 26.875,26.875 0 0 1 88.375,61.5 26.875,26.875 0 0 1 61.5,88.375 26.875,26.875 0 0 1 34.625,61.5 26.875,26.875 0 0 1 61.5,34.625 Z"/>
+            </svg>`,
+    };
+
     if(user.presence.status !== 'offline'){
         if(user.hoistRole){
             if(!document.getElementById(`rl/${user.hoistRole.id}`)){
@@ -872,11 +941,16 @@ function addMemeber(user){
         avatarUrl = avatarUrl.substring(0, avatarUrl.indexOf('?')) + '?size=64';
 
     // memberAvatarMask
-    let memberAvatarMaskActivity = memberAvatarMask.cloneNode();
+    // let memberAvatarMaskActivity = memberAvatarMask.cloneNode();
     // memberAvatarMaskActivity.width = '64px';
     // memberAvatarMaskActivity.height = '64px';
-    memberAvatarMaskActivity.src = `./img/${user.presence.status}.png`;
+    // memberAvatarMaskActivity.src = `./img/${user.presence.status}.svg`;
+    // memberAvatarMaskActivity.style = 'border-radius: 0;';
+
+    console.log(statusIcons[user.presence.status]);
+    memberAvatarMaskActivity = document.createRange().createContextualFragment(statusIcons[user.presence.status]);
     memberAvatarMaskActivity.style = 'border-radius: 0;';
+    console.log(memberAvatarMaskActivity);
 
     memberAvatarMask.src = avatarUrl !== '?size=64' ? avatarUrl : './img/placeholder.png';
 
@@ -945,7 +1019,7 @@ function updateChat(obj){
         messageContainer = document.createElement('div'),
         messageTime = document.createElement('span'),
         messageAuthor = document.createElement('span'),
-        messageContent = document.createElement('span'),
+        messageContent = document.createElement('div'),
         messageAttachment = document.createElement('div'),
         messageSeparator = document.createElement('div'),
         messageSeparatorText = document.createElement('div'),
@@ -966,6 +1040,8 @@ function updateChat(obj){
     messageSeparator.classList.add('messageSeparator');
     messageSeparatorText.classList.add('messageSeparatorText');
     botTag.classList.add('botTag');
+
+    let lastTime = 0;
 
     obj.forEach(data =>{
         if(document.getElementById(`msg/${data.message.id}`))
@@ -994,6 +1070,10 @@ function updateChat(obj){
         bot.innerText = 'bot';
 
         time.innerText = `${data.date.hour < 10 ? '0' : ''}${data.date.hour}:${data.date.minute < 10 ? '0' : ''}${data.date.minute}`;
+        if(lastTime != data.date.hour + data.date.minute){
+            time.style = 'visibility: visible;';
+            lastTime = data.date.hour + data.date.minute;
+        }
         author.innerText = `${data.message.member.nickname !== null ? data.message.member.nickname : data.message.author.username}`;
         if(data.message.member.colorRole) author.style.color = data.message.member.colorRole.hexColor;
         content.innerText = `${data.message.content}`;
