@@ -3,6 +3,7 @@ const client = new Discord.Client();
 
 const Store = require('electron-store');
 const store = new Store();
+const fetch = require('node-fetch');
 
 module.exports = {
     client: client
@@ -12,6 +13,7 @@ var ping = 0;
 
 client.on('ready', () => {
     console.log(`Logged in as ${client.user.tag}!`);
+    console.log(`With ${client.users.size} users, in ${client.channels.size} channels of ${client.guilds.size} guilds.`);
 
     setInterval(() => {
         if(ping != client.ping){
@@ -50,15 +52,24 @@ client.on('ready', () => {
 });
 
 client.on('message', msg => {
-//   if (msg.content === 'ping') {
-//     msg.reply('pong');
-//   }
-    // console.log(msg.content);
+    // if (msg.content === 'ping') {
+    //     msg.reply('pong');
+    // }
+    // console.log(msg);
 
     let channelId = msg.channel.id,
         channel = document.getElementById(`chc/${channelId}`);
 
-    if(channel && store.get('lastChannel') === `chc/${channelId}`) updateChat([{date: timestampToObject(msg.createdTimestamp), message: msg}]);
+    if(channel && store.get('lastChannel') === `chc/${channelId}`) updateChat([{date: timestampToObject(msg.createdTimestamp), message: msg}], {getMimeType: getMimeType});
+});
+
+client.on('messageUpdate', (old, msg) => {
+    // console.log(msg);
+
+    let channelId = msg.channel.id,
+        channel = document.getElementById(`chc/${channelId}`);
+
+    if(channel && store.get('lastChannel') === `chc/${channelId}`) updateChat([{date: timestampToObject(msg.createdTimestamp), message: msg}], {edited: true, getMimeType: getMimeType});
 });
 
 client.on("error", (e) => {
@@ -333,12 +344,16 @@ function selectChannelForChat(e){
                 // console.log(messagesText);
                 // document.getElementById('chatContent').innerText = messagesText;
 
-                updateChat(obj);
+                updateChat(obj, {getMimeType: getMimeType});
             })
             .catch(console.error);
 
         store.set('lastChannel', channelId); //word-break: break-all;
     }
+}
+
+function getMimeType(url){
+    return fetch(url);
 }
 
 

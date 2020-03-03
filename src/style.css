@@ -83,7 +83,8 @@ body{
     --elevation-low:0 1px 0 rgba(4,4,5,0.2),0 1.5px 0 rgba(6,6,7,0.05),0 2px 0 rgba(4,4,5,0.05);
     --elevation-medium:0 4px 4px rgba(0,0,0,0.16);
     --elevation-high:0 8px 16px rgba(0,0,0,0.24);
-    --logo-primary:#fff;--guild-header-text-shadow:0 1px 1px rgba(0,0,0,0.4);
+    --logo-primary:#fff;
+    --guild-header-text-shadow:0 1px 1px rgba(0,0,0,0.4);
     --channeltextarea-background:#40444b;
     --activity-card-background:#202225;
     --textbox-markdown-syntax:#8e9297;
@@ -129,7 +130,8 @@ body{
     --elevation-low:0 1px 0 rgba(6,6,7,0.1),0 1.5px 0 rgba(6,6,7,0.025),0 2px 0 rgba(6,6,7,0.025);
     --elevation-medium:0 4px 4px rgba(0,0,0,0.08);
     --elevation-high:0 8px 16px rgba(0,0,0,0.16);
-    --logo-primary:#7289da;--guild-header-text-shadow:0 1px 1px hsla(0,0%,100%,0.4);
+    --logo-primary:#7289da;
+    --guild-header-text-shadow:0 1px 1px hsla(0,0%,100%,0.4);
     --channeltextarea-background:#ebedef;
     --activity-card-background:#fff;
     --textbox-markdown-syntax:#6a7480;
@@ -175,7 +177,8 @@ body{
     --elevation-low:0 1px 0 rgba(4,4,5,0.2),0 1.5px 0 rgba(6,6,7,0.05),0 2px 0 rgba(4,4,5,0.05);
     --elevation-medium:0 4px 4px rgba(0,0,0,0.16);
     --elevation-high:0 8px 16px rgba(0,0,0,0.24);
-    --logo-primary:#fff;--guild-header-text-shadow:0 1px 1px rgba(0,0,0,0.4);
+    --logo-primary:#fff;
+    --guild-header-text-shadow:0 1px 1px rgba(0,0,0,0.4);
     --channeltextarea-background:#40444b;
     --activity-card-background:#202225;
     --textbox-markdown-syntax:#8e9297;
@@ -221,7 +224,8 @@ body{
     --elevation-low:0 1px 0 rgba(6,6,7,0.1),0 1.5px 0 rgba(6,6,7,0.025),0 2px 0 rgba(6,6,7,0.025);
     --elevation-medium:0 4px 4px rgba(0,0,0,0.08);
     --elevation-high:0 8px 16px rgba(0,0,0,0.16);
-    --logo-primary:#7289da;--guild-header-text-shadow:0 1px 1px hsla(0,0%,100%,0.4);
+    --logo-primary:#7289da;
+    --guild-header-text-shadow:0 1px 1px hsla(0,0%,100%,0.4);
     --channeltextarea-background:#ebedef;
     --activity-card-background:#fff;
     --textbox-markdown-syntax:#6a7480;
@@ -654,7 +658,7 @@ body{
     -webkit-box-flex: 0;
     -ms-flex: 0 0 auto;
     flex: 0 0 auto;
-    background-color: var(--deprecated-panel-background);
+    background-color: var(--background-secondary-alt);
 }
 
 .usernameContainer{
@@ -771,7 +775,7 @@ body{
 }
 
 .selectable{
-    cursor: pointer;
+    cursor: pointer !important;
 }
 
 .botTag{
@@ -2172,10 +2176,53 @@ a:-webkit-any-link:visited, a:-webkit-any-link:active, a:-webkit-any-link{
 .messageContent{
     margin-left: 5px;
     padding-left: 50px;
+    word-break: break-all;
 }
 
 .messageAttachment{
     position: relative;
+    display: block;
+
+    margin: 5px;
+    margin-left: 50px;
+
+    width: auto;
+    height: auto;
+    max-width: 400px;
+    max-height: 300px;
+    /* cursor: pointer; */
+    user-select: text;
+
+    outline: 0;
+}
+
+.mFile{
+    -webkit-box-sizing: border-box;
+    box-sizing: border-box;
+    border-radius: 3px;
+    letter-spacing: 0;
+    max-width: 520px;
+    width: 100%;
+    padding: 10px;
+    border: 1px solid transparent;
+}
+
+.theme-dark .mFile{
+    border-color: rgba(47,49,54,.6);
+    background-color: rgba(47,49,54,.3);
+}
+
+.theme-light .mFile{
+    border-color: #f6f6f7;
+    background-color: rgba(47,49,54,0.01);
+}
+
+.theme-dark audio.messageAttachment{ 
+    filter: invert(90%); 
+}
+
+.theme-light audio.messageAttachment{ 
+    filter: invert(0%); 
 }
 
 .messageSeparator{
@@ -2225,4 +2272,104 @@ a:-webkit-any-link:visited, a:-webkit-any-link:active, a:-webkit-any-link{
     border-radius: 8px;
 
     outline: 0;
+}
+
+.loadingBg{
+    /* background-image: url(); */
+    /* content: ""; */
+    background-color: var(--background-message-hover);
+}
+
+/* https://loading.io/css/ */
+/* .lds-hourglass {
+    display: inline-block;
+    position: relative;
+    width: 80px;
+    height: 80px;
+  } */
+.loadingBg:after {
+    content: " ";
+    display: block;
+    border-radius: 50%;
+    width: 0;
+    height: 0;
+    /* margin: 8px; */
+    box-sizing: border-box;
+    border: 32px solid #7289da;
+    border-color: #7289da transparent #7289da transparent;
+    animation: lds-hourglass 1.2s infinite;
+
+    margin-left: auto;
+    margin-right: auto;
+    
+    position: relative;
+    top: 40%;
+    transform: translateY(-50%);
+}
+@keyframes lds-hourglass {
+    0% {
+        transform: rotate(0);
+        animation-timing-function: cubic-bezier(0.55, 0.055, 0.675, 0.19);
+    }
+    50% {
+        transform: rotate(900deg);
+        animation-timing-function: cubic-bezier(0.215, 0.61, 0.355, 1);
+    }
+    100% {
+        transform: rotate(1800deg);
+    }
+}
+  
+
+.bgCover{
+    background-color: #0a0a0adb;
+    width: 100%;
+    height: calc(100% - 27px);
+    position: absolute;
+    top: 27px;
+    left: 0;
+    z-index: 400;
+}
+
+.bgImageWrapper{
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    position: fixed;
+
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+.bgImage{
+    width: auto;
+    height: auto;
+    max-width: 800px;
+    max-height: 600px;
+}
+
+.bgImageSpan{
+    font-size: 14px;
+    font-weight: 500;
+    display: block;
+    -ms-flex-item-align: start;
+    align-self: flex-start;
+    color: #fff!important;
+    text-decoration: none;
+    line-height: 30px;
+    -webkit-transition: opacity .15s ease;
+    transition: opacity .15s ease;
+    opacity: .5;
+    -webkit-box-flex: 0;
+    -ms-flex-positive: 0;
+    flex-grow: 0;
+
+
+}
+
+.bgImageSpan:hover{
+    opacity: 1;
+    text-decoration: underline;
 }

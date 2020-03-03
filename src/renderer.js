@@ -947,10 +947,10 @@ function addMemeber(user){
     // memberAvatarMaskActivity.src = `./img/${user.presence.status}.svg`;
     // memberAvatarMaskActivity.style = 'border-radius: 0;';
 
-    console.log(statusIcons[user.presence.status]);
+    // console.log(statusIcons[user.presence.status]);
     memberAvatarMaskActivity = document.createRange().createContextualFragment(statusIcons[user.presence.status]);
     memberAvatarMaskActivity.style = 'border-radius: 0;';
-    console.log(memberAvatarMaskActivity);
+    // console.log(memberAvatarMaskActivity);
 
     memberAvatarMask.src = avatarUrl !== '?size=64' ? avatarUrl : './img/placeholder.png';
 
@@ -1010,8 +1010,13 @@ function createChat(){
     chatContent.append(chatWrapper);
 }
 
-function updateChat(obj){
+function get_url_extension( url ) {
+    return url.split(/\#|\?/)[0].split('.').pop().trim();
+}
+
+function updateChat(obj, options = {edited: false}){ //{edited = false, getMimeType}){
     // console.log(obj);
+
 
     let chatContent = document.getElementById('chatContent'),
         chatWrapper = document.getElementsByClassName('chatWrapper')[0],
@@ -1020,7 +1025,7 @@ function updateChat(obj){
         messageTime = document.createElement('span'),
         messageAuthor = document.createElement('span'),
         messageContent = document.createElement('div'),
-        messageAttachment = document.createElement('div'),
+        messageAttachment = document.createElement('img'),
         messageSeparator = document.createElement('div'),
         messageSeparatorText = document.createElement('div'),
         botTag = document.createElement('span');
@@ -1037,6 +1042,7 @@ function updateChat(obj){
     messageAuthor.classList.add('messageAuthor');
     messageContent.classList.add('messageContent');
     messageAttachment.classList.add('messageAttachment');
+    messageAttachment.classList.add('loadingBg');
     messageSeparator.classList.add('messageSeparator');
     messageSeparatorText.classList.add('messageSeparatorText');
     botTag.classList.add('botTag');
@@ -1044,8 +1050,10 @@ function updateChat(obj){
     let lastTime = 0;
 
     obj.forEach(data =>{
-        if(document.getElementById(`msg/${data.message.id}`))
+        // console.log(data.message);
+        if(document.getElementById(`msg/${data.message.id}` && !options.edited)){
             return;
+        }
         let wrapper = messageWrapper.cloneNode(),
             container = messageContainer.cloneNode(),
             time = messageTime.cloneNode(),
@@ -1077,7 +1085,146 @@ function updateChat(obj){
         author.innerText = `${data.message.member.nickname !== null ? data.message.member.nickname : data.message.author.username}`;
         if(data.message.member.colorRole) author.style.color = data.message.member.colorRole.hexColor;
         content.innerText = `${data.message.content}`;
-        // attachment.innerText = `${data.date.hour}:${data.date.minute}`;
+        if(data.message.embeds.length>0){
+            let temp = document.createElement('span');
+            temp.innerHTML = `<br>has ${data.message.embeds.length} embed/s`;
+            temp.style.color = "var(--channels-default)";
+            content.append(temp);
+        }
+        if(data.message.editedTimestamp !== null){
+            let temp = document.createElement('span');
+            temp.innerHTML = ` (edited)`;
+            temp.style.color = "var(--channels-default)";
+            content.append(temp);
+        }
+
+        let attachments = [];
+        if(data.message.attachments.size>0){
+            function calcAspect(srcWidth, srcHeight, maxWidth, maxHeight){
+                var ratio = Math.min(maxWidth / srcWidth, maxHeight / srcHeight);
+                return { width: srcWidth*ratio, height: srcHeight*ratio };
+            }
+            data.message.attachments.forEach(att =>{
+                let extension = get_url_extension(att.url).toLowerCase();
+                // console.log(att);
+
+                // let type = '';
+                // if(options.getMimeType){
+                //     options.getMimeType(att.url).then(res => {
+                //         // console.log(url);
+                //         // console.log(res.status);
+                //         // console.log(res.headers.raw());
+                //         // console.log(res.headers.get('content-type'));
+                //         type = res.headers.get('content-type');
+                //     });
+                //     type = options.getMimeType(att.url);
+                // } 
+                // console.log(type);
+
+                // let temp = attachment.cloneNode();
+
+                let type = '';
+
+                if(extension.search(/(jpe?g?|a?png|[tg]iff?|ico|webp|svg)/)!=-1) type = 'img';
+                else if(extension.search(/(mp4|webm|ogg)/)!=-1) type = 'video';
+                else if(extension.search(/(mp3|wav|ogg)/)!=-1) type = 'audio';
+                else type = 'div';
+                // console.log(type, extension);
+
+                let temp = document.createElement(type);
+                temp.classList.add('messageAttachment');
+
+                temp.id = `matt/${att.id}`;
+                temp.setAttribute("filename", att.filename);
+                temp.setAttribute("filesize", att.filesize);
+                temp.setAttribute("url", att.url);
+                temp.setAttribute("width", att.width);
+                temp.setAttribute("height", att.height);
+                
+                // temp.classList.add('loadingBg');
+
+                switch(type){
+                    case 'img': {
+                        temp.src = `${att.url}`;
+
+                        let width = att.width,
+                            height = att.height,
+                            maxWidth= 400,
+                            maxHeight= 300;
+                        
+                        // if(height>maxHeight){
+                        //     height = maxWidth * height / width;
+                        //     // height = maxHeight;
+                        // }
+                        // if(width>maxWidth){
+                        //     width = maxHeight* width / height;
+                        //     // width = maxWidth;
+                        // }
+
+                        // temp.style.width = `${width}px`;
+                        // temp.style.height = `${height}px`;
+
+                        // temp.style.width = `auto`;
+                        // temp.style.height = `${att.height>300 ? 300 : height}px`;
+
+                        let size =  calcAspect(width, height, maxWidth, maxHeight);
+                        temp.style.width = `${size.width}px`;
+                        temp.style.height = `${size.height}px`;
+                        
+                        temp.classList.add('selectable');
+                        temp.addEventListener('click', selectPicture);
+
+                        break;
+                    }
+                    case 'video': {
+                        temp.src = `${att.url}`;
+                        temp.setAttribute("controls", undefined);
+                        let width = att.width,
+                            height = att.height,
+                            maxWidth= 400,
+                            maxHeight= 300;
+                        let size =  calcAspect(width, height, maxWidth, maxHeight);
+                        temp.style.width = `${size.width}px`;
+                        temp.style.height = `${size.height}px`;
+
+                        break;
+                    }
+                    case 'audio': {
+                        temp.src = `${att.url}`;
+                        temp.setAttribute("controls", undefined);
+
+                        temp.style.width = `inherit`;
+                        temp.style.height = `40px`;
+
+                        break;
+                    }
+                    case 'div': {
+                        temp.classList.add('mFile');
+                        // temp.style.width = `inherit`;
+                        // temp.style.height = `40px`;
+
+                        temp.innerHTML = `File: <a class="authLinkContent" href="${att.url}" target="_blank">${att.filename}</a><br>`;
+                        temp.innerHTML += `Size: ${formatBytes(att.filesize)}`;
+
+                        break;
+                    }
+                    default:{
+                        break;
+                    }
+                }
+                attachments.push(temp);
+            });
+
+            // console.log(data.message.attachments.first());
+            // attachment.src = `${data.message.attachments.first().url}`; 
+        }
+
+        let embeds = [];
+        if(data.message.embeds.length>0){
+            data.message.embeds.forEach(embed =>{
+                // console.log(embed);
+            });
+        }
 
         // document.getElementById('chatContent').innerText += `${data.date.hour}:${data.date.minute} ${data.message.member.nickname !== null ? data.message.member.nickname : data.message.author.username} ${data.message.content}\n`;
 
@@ -1085,10 +1232,21 @@ function updateChat(obj){
         if(data.message.author.bot) container.append(bot);
         container.append(author);
         container.append(content);
-        // container.append(attachment);
+        if(data.message.attachments.size>0){
+            attachments.forEach(att => container.append(att));
+        } 
+        if(data.message.embeds.length>0){
+            embeds.forEach(embed => container.append(att));
+        } 
         // wrapper.append(time);
         wrapper.append(container);
-        chatWrapper.append(wrapper);
+        if(options.edited){
+            let msg = document.getElementById(`msg/${data.message.id}`);
+            msg.parentNode.replaceChild(wrapper, msg);
+
+        }else{
+            chatWrapper.append(wrapper);
+        }
     });
 
     // chatContent.append(chatWrapper);
@@ -1096,4 +1254,54 @@ function updateChat(obj){
 
     chatContent.getElementsByClassName('chatWrapper')[0].scrollTop = chatContent.getElementsByClassName('chatWrapper')[0].scrollHeight;
 
+}
+
+function selectPicture(e){
+    let target = e.target,
+        height = target.getAttribute('height'),
+        width = target.getAttribute('height'),
+        src = target.src,
+        bg = document.createElement('div'),
+        wrapper = document.createElement('div'),
+        img = document.createElement('img'),
+        url = document.createElement('a');
+    // console.log(target);
+
+    if(!src) src = target.getAttribute('url');
+
+    function remove(e){
+        document.getElementById('bgCover').remove();
+    }
+
+    bg.classList.add('bgCover');
+    bg.id = 'bgCover';
+    bg.addEventListener('click', remove);
+    wrapper.classList.add('bgImageWrapper');
+    img.classList.add('bgImage');
+    url.classList.add('bgImageSpan');
+
+    img.src = src;
+    img.style.height = `${height>600 ? 600 : height}px`;
+    // img.style.width = `${(height>600 ? 600 : height) * width / height}px`;
+    url.href = src;
+    url.target = '_blank';
+    url.innerText = 'Open in browser';
+    // url.innerHTML = `<a href="${src}" target="_blank">Open in browser</a>`;
+
+    wrapper.append(img);
+    wrapper.append(url);
+    bg.append(wrapper);
+    document.body.append(bg);
+}
+
+function formatBytes(bytes, decimals = 2) {
+    if (bytes === 0) return '0 B';
+
+    const k = 1024;
+    const dm = decimals < 0 ? 0 : decimals;
+    const sizes = ['B', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'];
+
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
 }
