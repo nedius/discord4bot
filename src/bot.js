@@ -60,7 +60,7 @@ client.on('message', msg => {
     let channelId = msg.channel.id,
         channel = document.getElementById(`chc/${channelId}`);
 
-    if(channel && store.get('lastChannel') === `chc/${channelId}`) updateChat([{date: timestampToObject(msg.createdTimestamp), message: msg}], {getMimeType: getMimeType});
+    if(channel && store.get('lastChannel') === `chc/${channelId}`) updateChat([{date: timestampToObject(msg.createdTimestamp), message: msg}], {getMimeType: getMimeType, send:sendMessage});
 });
 
 client.on('messageUpdate', (old, msg) => {
@@ -69,7 +69,7 @@ client.on('messageUpdate', (old, msg) => {
     let channelId = msg.channel.id,
         channel = document.getElementById(`chc/${channelId}`);
 
-    if(channel && store.get('lastChannel') === `chc/${channelId}`) updateChat([{date: timestampToObject(msg.createdTimestamp), message: msg}], {edited: true, getMimeType: getMimeType});
+    if(channel && store.get('lastChannel') === `chc/${channelId}`) updateChat([{date: timestampToObject(msg.createdTimestamp), message: msg}], {edited: true, getMimeType: getMimeType, send:sendMessage});
 });
 
 client.on("error", (e) => {
@@ -344,12 +344,16 @@ function selectChannelForChat(e){
                 // console.log(messagesText);
                 // document.getElementById('chatContent').innerText = messagesText;
 
-                updateChat(obj, {getMimeType: getMimeType});
+                updateChat(obj, {getMimeType: getMimeType, send:sendMessage});
             })
             .catch(console.error);
 
         store.set('lastChannel', channelId); //word-break: break-all;
     }
+}
+
+function sendMessage(channel, content){
+    console.log(chennel, content);
 }
 
 function getMimeType(url){

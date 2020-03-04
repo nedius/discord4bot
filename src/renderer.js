@@ -1085,12 +1085,6 @@ function updateChat(obj, options = {edited: false}){ //{edited = false, getMimeT
         author.innerText = `${data.message.member.nickname !== null ? data.message.member.nickname : data.message.author.username}`;
         if(data.message.member.colorRole) author.style.color = data.message.member.colorRole.hexColor;
         content.innerText = `${data.message.content}`;
-        if(data.message.embeds.length>0){
-            let temp = document.createElement('span');
-            temp.innerHTML = `<br>has ${data.message.embeds.length} embed/s`;
-            temp.style.color = "var(--channels-default)";
-            content.append(temp);
-        }
         if(data.message.editedTimestamp !== null){
             let temp = document.createElement('span');
             temp.innerHTML = ` (edited)`;
@@ -1098,12 +1092,13 @@ function updateChat(obj, options = {edited: false}){ //{edited = false, getMimeT
             content.append(temp);
         }
 
+        function calcAspect(srcWidth, srcHeight, maxWidth, maxHeight){
+            var ratio = Math.min(maxWidth / srcWidth, maxHeight / srcHeight);
+            return { width: srcWidth*ratio, height: srcHeight*ratio };
+        }
+
         let attachments = [];
         if(data.message.attachments.size>0){
-            function calcAspect(srcWidth, srcHeight, maxWidth, maxHeight){
-                var ratio = Math.min(maxWidth / srcWidth, maxHeight / srcHeight);
-                return { width: srcWidth*ratio, height: srcHeight*ratio };
-            }
             data.message.attachments.forEach(att =>{
                 let extension = get_url_extension(att.url).toLowerCase();
                 // console.log(att);
@@ -1223,6 +1218,118 @@ function updateChat(obj, options = {edited: false}){ //{edited = false, getMimeT
         if(data.message.embeds.length>0){
             data.message.embeds.forEach(embed =>{
                 // console.log(embed);
+                // Embeds type
+                // rich - a rich embed
+                // image - an image embed
+                // video - a video embed
+                // gifv - a gifv embed
+                // article - an article embed
+                // link - a link embed
+
+                let element;
+
+                switch(embed.type){
+                    case 'rich':{
+                        let temp = document.createElement('div');
+                        temp.innerHTML = `has ${embed.type} embed/s`;
+                        temp.style.color = "var(--channels-default)";
+                        content.append(temp);
+
+                        // element = temp;
+                        break;
+                    }
+                    case 'image':{
+                        // let tempText = document.createElement('span');
+                        // tempText.innerHTML = `<br>has ${embed.type} embed/s`;
+                        // tempText.style.color = "var(--channels-default)";
+                        // content.append(tempText);
+                        
+                        let temp = document.createElement('img');
+                        temp.classList.add('messageAttachment');
+                        temp.src = `${embed.thumbnail.url}`;
+
+                        // embed.thumbnail
+                        // temp.id = `matt/${att.id}`;
+                        temp.setAttribute("url", embed.thumbnail.url);
+                        temp.setAttribute("width", embed.thumbnail.width);
+                        temp.setAttribute("height", embed.thumbnail.height);
+
+                        let width = embed.thumbnail.width,
+                            height = embed.thumbnail.height,
+                            maxWidth= 400,
+                            maxHeight= 300;
+
+                        let size =  calcAspect(width, height, maxWidth, maxHeight);
+                        temp.style.width = `${size.width}px`;
+                        temp.style.height = `${size.height}px`;
+                        
+                        temp.classList.add('selectable');
+                        temp.addEventListener('click', selectPicture);
+                        
+                        element = temp;
+                        break;
+                    }
+                    case 'video':{
+                        // let temp = document.createElement('div');
+                        // temp.innerHTML = `has ${embed.type} embed/s`;
+                        // temp.style.color = "var(--channels-default)";
+                        // content.append(temp);
+
+                        let temp = document.createElement('video');
+                        temp.classList.add('messageAttachment');
+
+                        // temp.id = `matt/${att.id}`;
+                        // temp.setAttribute("filename", att.filename);
+                        // temp.setAttribute("filesize", att.filesize);
+                        temp.setAttribute("url", embed.video.url);
+                        temp.setAttribute("width", embed.video.width);
+                        temp.setAttribute("height", embed.video.height);
+
+                        temp.src = `${embed.video.url}`;
+                        temp.setAttribute("controls", undefined);
+                        let width = embed.video.width,
+                            height = embed.video.height,
+                            maxWidth= 400,
+                            maxHeight= 300;
+                        let size =  calcAspect(width, height, maxWidth, maxHeight);
+                        temp.style.width = `${size.width}px`;
+                        temp.style.height = `${size.height}px`;
+                        
+                        element = temp;
+                        break;
+                    }
+                    case 'gifv':{
+                        let temp = document.createElement('div');
+                        temp.innerHTML = `has ${embed.type} embed/s`;
+                        temp.style.color = "var(--channels-default)";
+                        content.append(temp);
+                        
+                        // element = temp;
+                        break;
+                    }
+                    case 'article':{
+                        let temp = document.createElement('div');
+                        temp.innerHTML = `has ${embed.type} embed/s`;
+                        temp.style.color = "var(--channels-default)";
+                        content.append(temp);
+                        
+                        // element = temp;
+                        break;
+                    }
+                    case 'link':{
+                        let temp = document.createElement('div');
+                        temp.innerHTML = `has ${embed.type} embed/s`;
+                        temp.style.color = "var(--channels-default)";
+                        content.append(temp);
+                        
+                        // element = temp;
+                        break;
+                    }
+                    default:{
+                        break;
+                    }
+                }
+                if(element !== undefined) embeds.push(element);
             });
         }
 
@@ -1236,7 +1343,7 @@ function updateChat(obj, options = {edited: false}){ //{edited = false, getMimeT
             attachments.forEach(att => container.append(att));
         } 
         if(data.message.embeds.length>0){
-            embeds.forEach(embed => container.append(att));
+            embeds.forEach(embed => container.append(embed));
         } 
         // wrapper.append(time);
         wrapper.append(container);
