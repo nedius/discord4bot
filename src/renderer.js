@@ -154,7 +154,7 @@ function delGuilds(){
                                 `<div class="listItem"><div class="guildSeparator"></div></div>`;
 }
 
-function addChannel(channel, callback, callbackForChat){
+function addChannel(channel, callback, callbackForChat, voiceUserDrop){
     if(channel == undefined)
         return;
 
@@ -227,6 +227,10 @@ function addChannel(channel, callback, callbackForChat){
         sidebarChannelContainer.id = 'ch/' + channel.id;
         sidebarChannelContainer.addEventListener('click', callback);
 
+        sidebarChannelContainer.addEventListener('dragover', voiceUserDragEnter);
+        sidebarChannelContainer.addEventListener('dragleave', voiceUserDragLeave);
+        sidebarChannelContainer.addEventListener('drop', voiceUserDrop);
+
         element = sidebarChannelContainer;
 
     }
@@ -264,6 +268,53 @@ function addChannel(channel, callback, callbackForChat){
 function delChannels(){
     channelContainer.innerHTML = "";
 }
+
+function voiceUserDragStart(el){
+    // console.log(el.target.id);
+    el.dataTransfer.setData("text", el.target.id);
+}
+
+function voiceUserDragEnter(el){
+    el.preventDefault();
+    // console.log('enter');
+
+    let target = el.target;
+    while(!target.classList.contains('sidebarChannelContainer')){
+        target = target.parentNode;
+    }
+
+    target.classList.add('sidebarChannelContainerOnDrag')
+}
+
+function voiceUserDragLeave(el){
+    el.preventDefault();
+    // console.log('leave');
+
+    let target = el.target;
+    while(!target.classList.contains('sidebarChannelContainer')){
+        target = target.parentNode;
+    }
+
+    target.classList.remove('sidebarChannelContainerOnDrag')
+}
+
+// function voiceUserDrop(el){
+//     el.preventDefault();
+//     let userId = el.dataTransfer.getData("text");
+//     // console.log(data)
+
+//     let target = el.target, 
+//         channelId = '';
+//     while(!target.classList.contains('sidebarChannelContainer')){
+//         target = target.parentNode;
+//     }
+//     target.classList.remove('sidebarChannelContainerOnDrag');
+//     channelId = target.id;
+
+//     console.log(`transfering ${userId} user to ${channelId} channel`)
+
+//     // ev.target.appendChild(document.getElementById(data));
+// }
 
 function addVoiceUser(channel, user){
     if(channel == undefined || user == undefined)
@@ -317,6 +368,10 @@ function addVoiceUser(channel, user){
 
     voiceUserContent.classList.add('voiceUserContent');
     voiceUser.classList.add('voiceUser');
+
+    voiceUser.setAttribute('draggable', true);
+    voiceUser.addEventListener('dragstart', voiceUserDragStart);
+
     voiceUser.id = `vmb/${user.id}`;
 
     voiceUserAvatarContainer.append(img)

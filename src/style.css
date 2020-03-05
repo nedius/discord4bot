@@ -948,6 +948,21 @@ body{
     transition: opacity .2s ease-in-out;
 }
 
+.sidebarChannelContainerOnDrag:after {
+    -webkit-box-sizing: border-box;
+    box-sizing: border-box;
+    content: "";
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 8px;
+    border-radius: 4px;
+    z-index: -1;
+    background-color: rgba(67,181,129,.1);
+    border: 2px solid rgba(67,181,129,.5)
+}
+
 .sidebarChannelWrapper{
     height: 34px;
     overflow: hidden;
@@ -1125,6 +1140,10 @@ body{
     margin-bottom: 3px;
 
     overflow: hidden;
+}
+
+.voiceUserAvatarContainer img{
+    -webkit-user-drag: none;
 }
 
 .voiceUsername{

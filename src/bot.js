@@ -114,7 +114,7 @@ function selectGuild(e){
         const category = guild.channels.get(categoryID);
         if (category) addChannel(category);
         for (let [, child] of children){
-            addChannel(child, selectChannel, selectChannelForChat);
+            addChannel(child, selectChannel, selectChannelForChat, voiceUserDrop);
             if(child.type == 'voice' && child.members.size > 0){
                 for(let [, member] of child.members){
                     // console.log(member)
@@ -151,6 +151,26 @@ function selectGuild(e){
 
     // guild.members.get('281478128629579776').removeRole('414537106145280002');
     // guild.members.get('281478128629579776').removeRole('316907844236476416');
+}
+
+function voiceUserDrop(el){
+    el.preventDefault();
+    let userId = el.dataTransfer.getData("text");
+    // console.log(data)
+
+    let target = el.target, 
+        channelId = '';
+    while(!target.classList.contains('sidebarChannelContainer')){
+        target = target.parentNode;
+    }
+    target.classList.remove('sidebarChannelContainerOnDrag');
+    channelId = target.id;
+
+    console.log(`transfering ${userId.substr(4)} user to ${channelId.substr(3)} channel`);
+
+    client.channels.get(channelId.substr(3)).guild.members.get(userId.substr(4)).setVoiceChannel(channelId.substr(3));
+
+    // ev.target.appendChild(document.getElementById(data));
 }
 
 function getGuildOptions(e){
