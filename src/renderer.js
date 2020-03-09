@@ -346,12 +346,8 @@ function addVoiceUser(channel, user){
     }
 
     // https://cdn.discordapp.com/avatars/281478128629579776/8b34a214391087454e6d302c488379d4.png?size=2048
-    let avatarUrl = user.user.displayAvatarURL;
-    if( avatarUrl.indexOf('?size') )
-        avatarUrl = avatarUrl.substring(0, avatarUrl.indexOf('?')) + '?size=64';
-
-
-    img.src = avatarUrl;
+    img.src = user.user.displayAvatarURL + "?size=64";
+    
     // console.log(user.user.avatarURL, '\n', user.user.displayAvatarURL);
 
     img.alt = user.user.username + " avatar";
@@ -538,7 +534,7 @@ function setClientUser(user){
     username.innerText = user.username;
     userTag.innerText = '#' + user.discriminator;
     // userTag.innerText = (user.tag).substring(user.username.length);
-    userImage.src = user.avatarURL.substring(0, user.avatarURL.indexOf('?')) + '?size=64';;
+    userImage.src = user.displayAvatarURL + '?size=64';
 
     if(!user.bot){
         document.getElementById('clientBotTag').innerText = 'user';
@@ -991,10 +987,6 @@ function addMemeber(user){
     memberContent.append(memberName);
     memberContent.append(memberSubText);
 
-    let avatarUrl = user.user.displayAvatarURL;
-    if( avatarUrl.indexOf('?size') )
-        avatarUrl = avatarUrl.substring(0, avatarUrl.indexOf('?')) + '?size=64';
-
     // memberAvatarMask
     // let memberAvatarMaskActivity = memberAvatarMask.cloneNode();
     // memberAvatarMaskActivity.width = '64px';
@@ -1007,7 +999,7 @@ function addMemeber(user){
     memberAvatarMaskActivity.style = 'border-radius: 0;';
     // console.log(memberAvatarMaskActivity);
 
-    memberAvatarMask.src = avatarUrl !== '?size=64' ? avatarUrl : './img/placeholder.png';
+    memberAvatarMask.src = user.user.displayAvatarURL + "?size=64";
 
     memberAvatarMask.alt = user.user.username + ' avatar';
     memberAvatarWrapper.append(memberAvatarMask);
