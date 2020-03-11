@@ -254,16 +254,22 @@ window.addEventListener('DOMContentLoaded', () => {
 
 });
 
-var windowsPos = remote.getCurrentWindow().getPosition()
-    windowsSize = remote.getCurrentWindow().getSize();
-
+var windowsPos = remote.getCurrentWindow().getPosition(),
+    windowsSize = remote.getCurrentWindow().getSize(),
+    lastPos = 0,
+    lastSize = 0,
+    lastInterval = 0.350;
 
 remote.getCurrentWindow().on('move', () => {
-  if(windowsPos[0] !== remote.getCurrentWindow().getPosition()[0] || windowsPos[1] !== remote.getCurrentWindow().getPosition()[1]){
-    windowsPos =  remote.getCurrentWindow().getPosition();
-    // console.log(`pos x: ${windowsPos[0]} y: ${windowsPos[1]}`);
-    store.set('posX', windowsPos[0]);
-    store.set('posY', windowsPos[1]);
+  if( remote.process.uptime() - lastPos > lastInterval){
+    lastPos = remote.process.uptime();
+    // console.log('lastPos', lastPos);
+    if(windowsPos[0] !== remote.getCurrentWindow().getPosition()[0] || windowsPos[1] !== remote.getCurrentWindow().getPosition()[1]){
+      windowsPos =  remote.getCurrentWindow().getPosition();
+      // console.log(`pos x: ${windowsPos[0]} y: ${windowsPos[1]}`);
+      store.set('posX', windowsPos[0]);
+      store.set('posY', windowsPos[1]);
+    }
   }
 })
 

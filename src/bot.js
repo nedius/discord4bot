@@ -60,7 +60,7 @@ client.on('message', msg => {
     let channelId = msg.channel.id,
         channel = document.getElementById(`chc/${channelId}`);
 
-    if(channel && store.get('lastChannel') === `chc/${channelId}`) updateChat([{date: timestampToObject(msg.createdTimestamp), message: msg}], {getMimeType: getMimeType, send:sendMessage});
+    if(channel && store.get('lastChannel') === `chc/${channelId}`) updateChat([{date: timestampToObject(msg.createdTimestamp), message: msg}], {getMimeType: getMimeType, send:sendMessage, deleteMessage: deleteMessage});
 });
 
 client.on('messageUpdate', (old, msg) => {
@@ -69,12 +69,55 @@ client.on('messageUpdate', (old, msg) => {
     let channelId = msg.channel.id,
         channel = document.getElementById(`chc/${channelId}`);
 
-    if(channel && store.get('lastChannel') === `chc/${channelId}`) updateChat([{date: timestampToObject(msg.createdTimestamp), message: msg}], {edited: true, getMimeType: getMimeType, send:sendMessage});
+    if(channel && store.get('lastChannel') === `chc/${channelId}`) updateChat([{date: timestampToObject(msg.createdTimestamp), message: msg}], {edited: true, getMimeType: getMimeType, send:sendMessage, deleteMessage: deleteMessage});
+});
+
+client.on('messageDelete', (msg) => {
+    // console.log(msg);
+
+    let message = document.getElementById(`msg/${msg.id}`),
+        deleteSeparator = false;
+
+    if(message){
+
+        // if(message.previousSibling)
+        //     if(message.previousSibling.classList.contains('messageSeparator'))
+        //         if(message.nextSibling)
+        //             if(!message.nextSibling.classList.contains('messageWrapper'))
+        //                 message.previousSibling.remove();
+
+        if(message.nextSibling){
+            if(!message.nextSibling.classList.contains('messageWrapper')){
+                deleteSeparator = true;
+            }else{
+                deleteSeparator = false;
+            }
+        }else if(message.previousSibling){
+            if(message.previousSibling.classList.contains('messageSeparator')){
+                deleteSeparator = true;
+            }else{
+                deleteSeparator = false;
+            }
+        }
+
+            
+        if(deleteSeparator)
+            message.previousSibling.remove();
+        message.remove();
+    } 
 });
 
 client.on("error", (e) => {
     console.error(e);
 });
+
+client.on('presenceUpdate', (oldM, newM) => {
+    // console.log(newM);
+    if( newM.guild.id === store.get('lastGuild').substring(3) ){ // newM.presence.status != oldM.presence.status &&
+        // console.log(oldM.displayName, oldM.presence.status, '=>', newM.presence.status)
+        loadMembers(newM.guild, newM.guild.channels.get( store.get('lastChannel').split('/')[1]) );
+    }
+})
 
 function selectGuild(e){
     let guildId = e.target;
@@ -85,7 +128,8 @@ function selectGuild(e){
     if(guildId.classList.contains('listItem'))
         guildId = guildId.id;
 
-    let guild = client.guilds.get(guildId.substring(3));
+    let guild = client.guilds.get(guildId.substring(3)),
+        firstTextChannel;
 
     delChannels();
     document.getElementsByClassName('sidebarGuildName')[0].innerText = guild.name;
@@ -114,6 +158,7 @@ function selectGuild(e){
         const category = guild.channels.get(categoryID);
         if (category) addChannel(category);
         for (let [, child] of children){
+            if(!firstTextChannel && child.type === 'text') firstTextChannel = child.id;
             addChannel(child, selectChannel, selectChannelForChat, voiceUserDrop);
             if(child.type == 'voice' && child.members.size > 0){
                 for(let [, member] of child.members){
@@ -125,6 +170,8 @@ function selectGuild(e){
                         setMute(member, true);
                     if(member.selfDeaf || member.serverDeaf)
                         setDeaf(member, true);
+                    if(member.selfStream)
+                        setGoLive(member, true);
                     // setMute(member, member.mute);
                     // setDeaf(member, member.deaf);
                 }
@@ -140,6 +187,10 @@ function selectGuild(e){
     })
 
     loadMembers(guild);
+
+    if(firstTextChannel && e.isTrusted){
+        document.getElementById(`chc/${firstTextChannel}`).click();
+    }
 
     store.set('lastGuild', guildId);
 
@@ -166,7 +217,7 @@ function voiceUserDrop(el){
     target.classList.remove('sidebarChannelContainerOnDrag');
     channelId = target.id;
 
-    console.log(`transfering ${userId.substr(4)} user to ${channelId.substr(3)} channel`);
+    // console.log(`transfering ${userId.substr(4)} user to ${channelId.substr(3)} channel`);
 
     client.channels.get(channelId.substr(3)).guild.members.get(userId.substr(4)).setVoiceChannel(channelId.substr(3));
 
@@ -274,7 +325,7 @@ function getGuildOptions(e){
     store.set('lastChannel', `gdo/${guild.id}`);
 }
 
-function loadMembers(guild){
+function loadMembers(guild, channel){
     
     // const roleFilter = (a, b) =>{
     //     return b.highestRole.position - a.highestRole.position;
@@ -291,6 +342,14 @@ function loadMembers(guild){
         return 0;
     }
 
+    function hasPermissions(member){
+        if(channel){
+            if(!member.permissionsIn(channel).has('VIEW_CHANNEL'))
+                return false;
+        }
+        return true;
+    }
+
     delMembers();
     // guild.members.sort(roleFilter).tap(member =>{
     //     addMemeber(member);
@@ -300,18 +359,18 @@ function loadMembers(guild){
     guild.roles.sort((a, b) => b.calculatedPosition - a.calculatedPosition).tap(role =>{
         if(role.hoist || role.name == '@everyone'){
             // console.log(role.name, role.position, role.calculatedPosition, role.members.size);
-            role.members.sort(nameSorter).filter(member => member.presence.status !== 'offline').tap(member =>{
+            role.members.sort(nameSorter).filter(hasPermissions).filter(member => member.presence.status !== 'offline').tap(member =>{
                 // console.log(member.displayName);
                 if(!document.getElementById(`mb/${member.id}`)){
-                    addMemeber(member);
+                    addMemeber(member, channel);
                     document.getElementById(`mb/${member.id}`).addEventListener('click', selectMember);
                 }
             })
         } 
     })
 
-    guild.members.sort(nameSorter).filter(member => member.presence.status === 'offline').tap(member =>{
-        addMemeber(member);
+    guild.members.sort(nameSorter).filter(hasPermissions).filter(member => member.presence.status === 'offline').tap(member =>{
+        addMemeber(member, channel);
         document.getElementById(`mb/${member.id}`).addEventListener('click', selectMember);
     })
     
@@ -341,9 +400,11 @@ function selectChannelForChat(e){
 
         clearChat();
         document.getElementsByClassName('chatTitleName')[0].innerText = channel.name;
+        createChat(sendMessage, channel);
         // console.log(`open chat ${channel.guild.name} ${channel.name}/${channel.id}`);
         channel.fetchMessages()//{ limit: 50 }
             .then(messages => {
+                clearChat();
 
                 function sorting(a,b){
                     return a.id - b.id;
@@ -363,17 +424,26 @@ function selectChannelForChat(e){
 
                 // console.log(messagesText);
                 // document.getElementById('chatContent').innerText = messagesText;
-
-                updateChat(obj, {getMimeType: getMimeType, send:sendMessage});
+                updateChat(obj, {getMimeType: getMimeType, send:sendMessage, deleteMessage: deleteMessage});
             })
             .catch(console.error);
+
+        loadMembers(channel.guild, channel);
 
         store.set('lastChannel', channelId); //word-break: break-all;
     }
 }
 
-function sendMessage(channel, content){
-    console.log(chennel, content);
+function sendMessage(channelId, content){
+    // console.log(channelId, content);
+    return client.channels.get(channelId).send(content);
+}
+
+function deleteMessage(e){ 
+    let target = e.target;
+
+    client.guilds.get(target.getAttribute('guildId')).channels.get(target.getAttribute('channelId')).messages.get(target.getAttribute('messageId')).delete();
+    // console.log(target);
 }
 
 function getMimeType(url){
@@ -514,6 +584,7 @@ function selectChannel(e){
     //     // }
     // }
 
+    loadMembers(channel.guild, channel);
     
     store.set('lastChannel', channelId);
 }
@@ -523,6 +594,7 @@ function selectVoiceMember(id){
 }
 
 client.on('voiceStateUpdate', (oldM, newM) => {
+    // debugger;
     // console.log(oldM, newM);
     if(newM.voiceChannelID == null){
         delVoiceUser(newM);
@@ -537,13 +609,8 @@ client.on('voiceStateUpdate', (oldM, newM) => {
         setMute(newM, true);
     if(newM.selfDeaf || newM.serverDeaf)
         setDeaf(newM, true);
-
-    // var video = newM.guild._rawVoiceStates.get(newM.id);
-    // var video = newM;
-    // console.log(video);
-
-    // if(video)
-    //     setGoLive(newM, true);
+    if(newM.selfStream)
+        setGoLive(newM, true);
 
 });
 
@@ -691,10 +758,3 @@ function selectMember(e){
 
     store.set('lastChannel', memberDiv.id);
 }
-
-client.on('presenceUpdate', (oldM, newM) =>{
-    if(newM.presence.status != oldM.presence.status && newM.guild.id === store.get('lastGuild').substring(3)){
-        // console.log(oldM.displayName, oldM.presence.status, '=>', newM.presence.status)
-        loadMembers(newM.guild);
-    }
-})

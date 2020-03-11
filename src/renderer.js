@@ -324,7 +324,7 @@ function addVoiceUser(channel, user){
         delVoiceUser(user, true);
 
     let channelDiv = document.getElementById('ch/' + channel.id),
-        sidebarChannelList = channelDiv.getElementsByClassName('sidebarChannelList')[0],
+        sidebarChannelList = channelDiv ? channelDiv.getElementsByClassName('sidebarChannelList')[0] : undefined,
         voiceUser = document.createElement('div'),
         voiceUserContent = document.createElement('div'),
         voiceUserAvatarContainer = document.createElement('div'),
@@ -423,11 +423,15 @@ function delVoiceUser(user, changingServer = false){
     if(user == undefined)
         return;
     
-    let voiceUser = document.getElementById(`vmb/${user.id}`),
-        list = voiceUser.parentNode;
+    let voiceUser = document.getElementById(`vmb/${user.id}`);
+
+    if(!voiceUser)
+        return;
+
+    let list = voiceUser.parentNode;
 
     if(voiceUser != undefined)
-        voiceUser.parentNode.removeChild(voiceUser);
+        voiceUser.remove();
 
     if(!list.hasChildNodes() && changingServer)
         list.remove();
@@ -688,6 +692,7 @@ function addChatOp(options){
                 separator = document.createElement('div');
 
                 separator.classList.add('channelOptionSeparator');
+                separator.innerText = '󠂪󠂪󠂪 󠂪󠂪󠂪';
                 chatContent.append(separator)
                 break;
             }
@@ -827,8 +832,8 @@ function clearTaskBar(content = ''){
     taskbar.classList.remove('openTask');
 }
 
-function addMemeber(user){
-    // console.log(user)
+function addMemeber(user, channel){
+    // console.log(user.displayName, user);
     let memberDiv = document.getElementById('memberDiv'),
         member = document.createElement('div'),
         memberLayout = document.createElement('div'),
@@ -839,6 +844,7 @@ function addMemeber(user){
         memberName = document.createElement('div'),
         memberSubText = document.createElement('div'),
         memberActivity = document.createElement('div'),
+        memberActivityEmoji = document.createElement('img'),
         memberGroup = document.createElement('header'),
         botTag = document.createElement('span');
 
@@ -902,12 +908,20 @@ function addMemeber(user){
             </svg>`,
     };
 
+    function hasPermissions(member){
+        if(channel){
+            if(!member.permissionsIn(channel).has('VIEW_CHANNEL'))
+                return false;
+        }
+        return true;
+    }
+
     if(user.presence.status !== 'offline'){
         if(user.hoistRole){
             if(!document.getElementById(`rl/${user.hoistRole.id}`)){
                 memberGroup.classList.add('memberGroup');
                 memberGroup.id = `rl/${user.hoistRole.id}`;
-                memberGroup.innerText = `${user.hoistRole.name} - ${user.hoistRole.members.filter(member => member.presence.status !== 'offline' && member.hoistRole === user.hoistRole).size}`;
+                memberGroup.innerText = `${user.hoistRole.name} - ${user.hoistRole.members.filter(hasPermissions).filter(member => member.presence.status !== 'offline' && member.hoistRole === user.hoistRole).size}`;
                 // memberGroup.innerText = `${user.hoistRole !== null ? user.hoistRole.name : user.highestRole.name} - ${user.highestRole.members.size}`;
 
                 memberDiv.append(memberGroup);
@@ -916,14 +930,14 @@ function addMemeber(user){
             if(!document.getElementById(`rl/${user.highestRole.id}`) && user.highestRole.hoist){// && user.highestRole.name !== '@everyone'){
                 memberGroup.classList.add('memberGroup');
                 memberGroup.id = `rl/${user.highestRole.id}`;
-                memberGroup.innerText = `${user.highestRole.name === '@everyone' ? 'online' : user.highestRole.name} - ${user.highestRole.members.filter(member => member.presence.status !== 'offline' && member.hoistRole === null).size}`;
+                memberGroup.innerText = `${user.highestRole.name === '@everyone' ? 'online' : user.highestRole.name} - ${user.highestRole.members.filter(hasPermissions).filter(member => member.presence.status !== 'offline' && member.hoistRole === null).size}`;
                 
                 memberDiv.append(memberGroup);
             }else{
                 if(!document.getElementById(`rl/online`)){
                     memberGroup.classList.add('memberGroup');
                     memberGroup.id = `rl/online`;
-                    memberGroup.innerText = `online - ${user.guild.members.filter(member => !member.hoistRole && !member.highestRole.hoist && member.presence.status !== 'offline').size}`;
+                    memberGroup.innerText = `online - ${user.guild.members.filter(hasPermissions).filter(member => !member.hoistRole && !member.highestRole.hoist && member.presence.status !== 'offline').size}`;
                     
                     memberDiv.append(memberGroup);
                 }
@@ -934,7 +948,7 @@ function addMemeber(user){
             memberGroup.classList.add('memberGroup');
             memberGroup.id = `rl/offline`;
             // console.log(user)
-            memberGroup.innerText = `offline - ${user.guild.members.filter(member => member.presence.status === 'offline').size}`;
+            memberGroup.innerText = `offline - ${user.guild.members.filter(hasPermissions).filter(member => member.presence.status === 'offline').size}`;
             
             memberDiv.append(memberGroup);
         }
@@ -951,11 +965,17 @@ function addMemeber(user){
     memberName.classList.add('memberName');
     memberSubText.classList.add('memberSubText');
     memberActivity.classList.add('memberActivity');
+    memberActivityEmoji.classList.add('memberActivityEmoji');
 
-    let status = '';
+    let status = '',
+        hasCustomEmoji = false;
 
-    if(user.presence.game){
-        switch(user.presence.game.type){
+    if(user.presence.activities.length > 0){
+        game = user.presence.activities[0];
+        // console.log(user.displayName, game);
+
+        
+        switch(game.type){
             case 0: { status = 'Playing'; break; }
             case 1: { status = 'Streaming'; break; }
             case 2: { status = 'Listening'; break; }
@@ -964,18 +984,35 @@ function addMemeber(user){
             default : status = '';
         }
 
-        if(user.presence.game.name !== 'Custom Status')
-            status += ` ${user.presence.game.name}`;
-        else
-            status += ` ${user.presence.game.state}`;
-
+        if(game.name !== 'Custom Status'){
+            status += ` ${game.name}`;
+        }
+        else{
+            if(game.emoji){
+                if(game.emoji.id){
+                    memberActivityEmoji.src = game.emoji.url;
+                    status += ` ${game.state}`;
+                    hasCustomEmoji = true;
+                }else{
+                    status += `${ game.emoji.name}  ${game.state}`;
+                }
+            }else{
+                status += `  ${game.state}`;
+            }
+        }
     }
+
+    // if(user.id === '379778712868225042'){
+    //     memberActivityEmoji.src = 'https://cdn.discordapp.com/emojis/643913869093371905.gif';
+    //     hasCustomEmoji = true;
+    // }
 
     memberActivity.innerText = status;
 
     botTag.classList.add('botTag');
     botTag.innerText = 'bot';
 
+    if(hasCustomEmoji) memberSubText.append(memberActivityEmoji);
     memberSubText.append(memberActivity);
     memberName.innerText = user.nickname != null ? user.nickname : user.user.username;
 
@@ -1047,7 +1084,24 @@ function timestampToObject(timestamp){
             };
 }
 
-function createChat(){
+function countLines(str){
+    return (str.match(/\n/g) || '').length + 1; 
+}
+
+function isEmpty(str) {
+    return (!str || str.length === 0);
+}
+
+function isBlank(str) {
+    return (!str || /^\s*$/.test(str));
+}
+
+String.prototype.isEmpty = function() {
+    return (this.length === 0 || !this.trim());
+}
+
+function createChat(sendMessage, channel){
+    // console.log(channel);
     document.getElementById('chatContent').style = 'overflow-y: hidden;';
 
     let chatContent = document.getElementById('chatContent'),
@@ -1055,6 +1109,61 @@ function createChat(){
 
     chatWrapper.classList.add('chatWrapper');
     chatContent.append(chatWrapper);
+
+    if(sendMessage && channel){
+        let chatSendWrapper = document.createElement('div'),
+            chatSendContainer = document.createElement('div'),
+            chatSendInput = document.createElement('textarea');
+
+        chatSendWrapper.classList.add('chatInputWrapper');
+        chatSendContainer.classList.add('chatInputContainer');
+        chatSendInput.classList.add('chatInput');
+
+        chatSendInput.placeholder = `Message #${channel.name}`;
+        chatSendInput.setAttribute('channel', channel.id);
+        chatSendInput.addEventListener('input', e => {
+            let lines = countLines(e.target.value),
+                pixels =  lines < 2 ? 22 : lines * 20;
+            e.target.style.height = pixels + "px";
+            // e.target.parentNode.style.height = pixels + "px";
+        });
+        chatSendInput.addEventListener("keypress", event => {
+            if(event.keyCode == 13 && event.shiftKey){
+                event.preventDefault();
+                let caretPos = event.target.selectionStart;
+                event.target.value = `${event.target.value.substr(0, caretPos)}\n${event.target.value.substr(caretPos)}`;
+                event.target.setSelectionRange(caretPos+1, caretPos+1);
+                event.target.dispatchEvent(new Event("input"));
+                event.target.blur();
+                event.target.focus();
+            }else if (event.keyCode == 13) {
+                event.preventDefault();
+            }
+        });
+        chatSendInput.addEventListener("keyup", event => {
+            if (event.keyCode === 13) {
+                event.preventDefault();
+        
+                if( ( isEmpty(event.target.value.trim()) || isBlank(event.target.value.trim()) || event.target.value.trim().isEmpty() ) || event.shiftKey){
+                    return;
+                } 
+                if(event.target.value.length > 2000){
+                    alert(`Message to large ${event.target.value.length}/2000`);
+                    return;
+                }
+
+                sendMessage(event.target.getAttribute('channel'), event.target.value.trim()).then( msg => {
+                    event.target.value = '';
+                    event.target.dispatchEvent(new Event("input"));
+                });
+            }
+        });
+
+        chatSendContainer.append(chatSendInput);
+        chatSendWrapper.append(chatSendContainer);
+
+        chatContent.append(chatSendWrapper);
+    }
 }
 
 function get_url_extension( url ) {
@@ -1071,6 +1180,7 @@ function updateChat(obj, options = {edited: false}){ //{edited = false, getMimeT
         messageContainer = document.createElement('div'),
         messageTime = document.createElement('span'),
         messageAuthor = document.createElement('span'),
+        messageDelete = document.createElement('span'),
         messageContent = document.createElement('div'),
         messageAttachment = document.createElement('img'),
         messageSeparator = document.createElement('div'),
@@ -1078,7 +1188,11 @@ function updateChat(obj, options = {edited: false}){ //{edited = false, getMimeT
         botTag = document.createElement('span');
 
     if(!chatWrapper){
-        createChat();
+        if(options.send){
+            createChat(options.send, obj[0].message.channel);
+        } else{
+            createChat();
+        }
         chatWrapper = document.getElementsByClassName('chatWrapper')[0];
     }
 
@@ -1087,6 +1201,7 @@ function updateChat(obj, options = {edited: false}){ //{edited = false, getMimeT
     messageContainer.classList.add('messageContainer');
     messageTime.classList.add('messageTime');
     messageAuthor.classList.add('messageAuthor');
+    messageDelete.classList.add('messageDelete');
     messageContent.classList.add('messageContent');
     messageAttachment.classList.add('messageAttachment');
     messageAttachment.classList.add('loadingBg');
@@ -1105,6 +1220,7 @@ function updateChat(obj, options = {edited: false}){ //{edited = false, getMimeT
             container = messageContainer.cloneNode(),
             time = messageTime.cloneNode(),
             author = messageAuthor.cloneNode(),
+            _delete = messageDelete.cloneNode(),
             content = messageContent.cloneNode(),
             attachment = messageAttachment.cloneNode(),
             bot = botTag.cloneNode(),
@@ -1129,8 +1245,15 @@ function updateChat(obj, options = {edited: false}){ //{edited = false, getMimeT
             time.style = 'visibility: visible;';
             lastTime = data.date.hour + data.date.minute;
         }
-        author.innerText = `${data.message.member.nickname !== null ? data.message.member.nickname : data.message.author.username}`;
-        if(data.message.member.colorRole) author.style.color = data.message.member.colorRole.hexColor;
+        author.innerText = `${data.message.member !== null ? data.message.member.nickname !== null ? data.message.member.nickname : data.message.author.username : data.message.author.username}`;
+        if(data.message.member !== null) if(data.message.member.colorRole) author.style.color = data.message.member.colorRole.hexColor;
+        if(options.deleteMessage){
+            _delete.innerText = '🗑';
+            _delete.setAttribute('guildId', data.message.guild.id);
+            _delete.setAttribute('channelId', data.message.channel.id);
+            _delete.setAttribute('messageId', data.message.id);
+            _delete.addEventListener('click', options.deleteMessage);
+        }
         content.innerText = `${data.message.content}`;
         if(data.message.editedTimestamp !== null){
             let temp = document.createElement('span');
@@ -1384,7 +1507,10 @@ function updateChat(obj, options = {edited: false}){ //{edited = false, getMimeT
 
         container.append(time);
         if(data.message.author.bot) container.append(bot);
+        if(data.message.type === 'GUILD_MEMBER_JOIN') author.innerText = `${author.innerText} joined.`;
+        if(data.message.type === 'PINS_ADD') author.innerHTML = `${author.innerText} pinned a message to this channel.`;
         container.append(author);
+        if(options.deleteMessage) container.append(_delete);
         container.append(content);
         if(data.message.attachments.size>0){
             attachments.forEach(att => container.append(att));

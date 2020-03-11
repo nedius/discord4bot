@@ -5,9 +5,8 @@ node_modules/
 discord4bot-win32-x64/
 
 # misc
-npm run build.bat
-npm start.bat
-discord4bot - appdata.lnk
+*.bat
+*.lnk
 src/real.css
 src/index-old.html
 .VSCodeCounter/

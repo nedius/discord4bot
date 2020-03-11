@@ -17,8 +17,8 @@ canvas.height = window.innerHeight;
 canvas.id = "loginBlob";
 
 window.addEventListener("resize", (e) => {
-    console.log(e);
-    if(typeof(document.getElementById('loginBlob')) !== 'undefined'){
+    // console.log(e);
+    if(document.getElementById('loginBlob')){
         document.getElementById('loginBlob').width = window.innerWidth;
         document.getElementById('loginBlob').height = window.innerHeight;
     }

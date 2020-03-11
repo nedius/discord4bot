@@ -1405,6 +1405,9 @@ body{
     -webkit-box-flex: 1;
     -ms-flex: 1 1 auto;
     flex: 1 1 auto;
+
+    display: flex;
+    flex-direction: column;
 }
 
 .memberList{
@@ -1584,6 +1587,8 @@ body{
     white-space: nowrap;
     text-overflow: ellipsis;
     overflow: hidden;
+    display: flex;
+    flex-direction: row;
 }
 
 .memberActivity{
@@ -1597,6 +1602,12 @@ body{
     line-height: 16px;
     color: var(--channels-default);
     font-weight: 500;
+}
+
+.memberActivityEmoji{
+    margin-right: 4px;
+    width: 14px;
+    height: 14px;
 }
 
 .hidden{
@@ -2148,13 +2159,15 @@ a:-webkit-any-link:visited, a:-webkit-any-link:active, a:-webkit-any-link{
     cursor: not-allowed;
 }
 
-.chatWrapper{
+.chatWrapper{ 
     width: 100%;
     height: 100%;
     overflow-x: hidden;
     overflow-y: scroll;
     display: block;
     user-select: text;
+    
+    /* flex: 1 1 auto; */
 }
 
 .messageWrapper{
@@ -2171,7 +2184,7 @@ a:-webkit-any-link:visited, a:-webkit-any-link:active, a:-webkit-any-link{
     background-color: var(--background-message-hover);
 }
 
-.messageContainer:hover .messageTime{
+.messageContainer:hover .messageTime, .messageContainer:hover .messageDelete{
     visibility: visible;
 }
 
@@ -2190,6 +2203,13 @@ a:-webkit-any-link:visited, a:-webkit-any-link:active, a:-webkit-any-link{
 
 .messageAuthor{
     margin-left: 5px;
+}
+
+.messageDelete{
+    visibility: hidden;
+    float: right;
+    margin-right: 5px;
+    cursor: pointer;
 }
 
 .messageContent{
@@ -2384,11 +2404,77 @@ a:-webkit-any-link:visited, a:-webkit-any-link:active, a:-webkit-any-link{
     -webkit-box-flex: 0;
     -ms-flex-positive: 0;
     flex-grow: 0;
-
-
 }
 
 .bgImageSpan:hover{
     opacity: 1;
     text-decoration: underline;
+}
+
+.chatInputWrapper{
+    width: 100%;
+    height: 100%;
+
+    flex: 1 10 auto;
+}
+
+.chatInputContainer{
+    /* width: 100%; */
+    height: auto;
+
+    overflow-x: hidden;
+    overflow-y: scroll;
+    background-color: var(--channeltextarea-background);
+    max-height: 144px;
+    border-radius: 8px;
+
+    margin: 0px 10px 24px 10px;
+}
+
+.chatInput{
+    /* width: 100%;
+    height: 100%;
+
+    overflow-x: hidden;
+    overflow-y: scroll;
+    background-color: var(--channeltextarea-background);
+    max-height: 144px;
+    border-radius: 8px;
+    scrollbar-width: none; */
+
+    white-space: pre-wrap;
+    overflow-wrap: break-word;
+    -webkit-user-modify: read-write-plaintext-only;
+
+    border: none;
+    background-color: transparent;
+    /* margin: 12px 0 12px 10px; */
+    margin-left: 10px;
+    width: 90%;
+    /* max-height: 144px; */
+    font-size: 17px;
+    resize: none;
+
+    height: 22px;
+    /* min-height: 22px; */
+    /* height: 22px; */
+
+    outline: none;
+
+    padding-bottom: 5px;
+    padding-top: 10px;
+
+    caret-color: var(--text-normal);
+    text-align: left;
+    word-break: break-word;
+    white-space: break-spaces!important;
+
+    user-select: text;
+    color: var(--text-normal);
+    font-weight: 400;
+
+    /* font-family: inherit; */
+    font-family: Whitney, "Helvetica Neue", Helvetica, Arial, sans-serif;
+
+    overflow: hidden;
 }
