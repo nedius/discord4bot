@@ -60,7 +60,7 @@ client.on('message', msg => {
     let channelId = msg.channel.id,
         channel = document.getElementById(`chc/${channelId}`);
 
-    if(channel && store.get('lastChannel') === `chc/${channelId}`) updateChat([{date: timestampToObject(msg.createdTimestamp), message: msg}], {getMimeType: getMimeType, send:sendMessage, deleteMessage: deleteMessage});
+    if(channel && store.get('lastChannel') === `chc/${channelId}`) updateChat([{date: timestampToObject(msg.createdTimestamp), message: msg}], {getMimeType: getMimeType, send:sendMessage, deleteMessage: deleteMessage, react: reactMessage});
 });
 
 client.on('messageUpdate', (old, msg) => {
@@ -69,7 +69,7 @@ client.on('messageUpdate', (old, msg) => {
     let channelId = msg.channel.id,
         channel = document.getElementById(`chc/${channelId}`);
 
-    if(channel && store.get('lastChannel') === `chc/${channelId}`) updateChat([{date: timestampToObject(msg.createdTimestamp), message: msg}], {edited: true, getMimeType: getMimeType, send:sendMessage, deleteMessage: deleteMessage});
+    if(channel && store.get('lastChannel') === `chc/${channelId}`) updateChat([{date: timestampToObject(msg.createdTimestamp), message: msg}], {edited: true, getMimeType: getMimeType, send:sendMessage, deleteMessage: deleteMessage, react: reactMessage});
 });
 
 client.on('messageDelete', (msg) => {
@@ -117,10 +117,72 @@ client.on('presenceUpdate', (oldM, newM) => {
         // console.log(oldM.displayName, oldM.presence.status, '=>', newM.presence.status)
         loadMembers(newM.guild, newM.guild.channels.get( store.get('lastChannel').split('/')[1]) );
     }
-})
+});
+
+client.on('messageReactionAdd', (reaction, user) => {
+    // console.log(reaction, user);
+    console.log(`reaction added`);
+
+    let channelId = reaction.message.channel.id,
+        channel = document.getElementById(`chc/${channelId}`);
+
+    if(channel && store.get('lastChannel') === `chc/${channelId}`){
+        updateChat([{date: timestampToObject(reaction.message.createdTimestamp), message: reaction.message}], {edited: true, getMimeType: getMimeType, send:sendMessage, deleteMessage: deleteMessage, react: reactMessage});
+    }
+    
+});
+
+client.on('messageReactionRemoveEmoji', (reaction) => { // messageReactionRemove
+    // console.log(reaction, user);
+    console.log(`reaction removed`);
+
+    let channelId = reaction.message.channel.id,
+        channel = document.getElementById(`chc/${channelId}`);
+
+    if(channel && store.get('lastChannel') === `chc/${channelId}`){ //get message from disxord but its still incorrect
+        reaction.message.channel.fetchMessage(reaction.message.id).then(msg => {
+            updateChat([{date: timestampToObject(msg.createdTimestamp), message: msg}], {edited: true, getMimeType: getMimeType, send:sendMessage, deleteMessage: deleteMessage, react: reactMessage});
+        })
+    }
+    
+});
+
+function reactMessage(e){
+    let target = e.target,
+        guildId = '',
+        channelId = '',
+        messageId = '',
+        emojiName = ''
+        me = false;
+
+    if(target.classList.contains('messageReactionCustomEmoji'))
+        target = target.parentNode;
+
+    if(target.classList.contains('messageReactionSelf'))
+        me = true;
+
+    guildId = target.getAttribute('guild');
+    channelId = target.getAttribute('channel');
+    messageId = target.getAttribute('message');
+    emojiName = target.getAttribute('name');
+
+    // console.log(guildId, channelId, messageId, emojiName);
+
+    if(me){
+        client.guilds.get(guildId).channels.get(channelId).fetchMessage(messageId).then(msg => {
+            let reaction = msg.reactions.get(emojiName);
+            reaction.remove(client.user).catch(console.error);
+        }).catch(console.error);
+        
+    }else{
+        client.guilds.get(guildId).channels.get(channelId).fetchMessage(messageId).then(msg => msg.react(emojiName).catch(console.error)).catch(console.error);
+    }
+}
 
 function selectGuild(e){
     let guildId = e.target;
+    if(guildId.classList.contains('guildAcronym'))
+        guildId = guildId.parentNode;
     if(guildId.classList.contains('guildImage'))
         guildId = guildId.parentNode;
     if(guildId.classList.contains('wrapper'))
@@ -131,6 +193,13 @@ function selectGuild(e){
     let guild = client.guilds.get(guildId.substring(3)),
         firstTextChannel;
 
+    if(document.getElementById(guildId).classList.contains('guildSelected'))
+        return;
+
+    for( el of document.getElementsByClassName('listItem') ){
+        el.classList.remove('guildSelected');
+    }
+    
     delChannels();
     document.getElementsByClassName('sidebarGuildName')[0].innerText = guild.name;
     document.getElementsByClassName('sidebarGuildName')[0].id = `gdo/${guild.id}`;
@@ -192,6 +261,7 @@ function selectGuild(e){
         document.getElementById(`chc/${firstTextChannel}`).click();
     }
 
+    document.getElementById(guildId).classList.add('guildSelected');
     store.set('lastGuild', guildId);
 
     // guild.fetchAuditLogs()
@@ -424,7 +494,7 @@ function selectChannelForChat(e){
 
                 // console.log(messagesText);
                 // document.getElementById('chatContent').innerText = messagesText;
-                updateChat(obj, {getMimeType: getMimeType, send:sendMessage, deleteMessage: deleteMessage});
+                updateChat(obj, {getMimeType: getMimeType, send:sendMessage, deleteMessage: deleteMessage, react: reactMessage});
             })
             .catch(console.error);
 

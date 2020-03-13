@@ -27,3 +27,6 @@ Node.js 12.0.0 or newer is required.
 ### If you have problem
 
 If you encountered some problems try to delete Discord4bot folder and go trough installation again (you won't lose your settings). Its likely because of new Discord.js version. Discord4bot intended to run with 11.6.x version of Discord.js. You can check your Discord.js version with `npm list discord.js` command.
+
+### Known Issues
+ * Reaction entirely disappearing when you unreact them. Channel reload should show correctly reaction again.

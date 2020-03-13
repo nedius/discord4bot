@@ -576,6 +576,11 @@ body{
     -ms-flex-pack: center;
     justify-content: center;
     width: 72px;
+    border-radius: 100%;
+}
+
+.guildSelected{
+    border-radius: 30%;
 }
 
 .wrapper{
@@ -583,6 +588,10 @@ body{
     box-sizing: border-box;
     width: 48px;
     height: 48px;
+    overflow: hidden;
+
+    border-radius: inherit;
+    background-color: var(--background-primary);
 }
 
 .guildSeparator{
@@ -595,11 +604,16 @@ body{
 .guildImage{
     width: 100%;
     height: 100%;
-    border-radius: 100%;
     cursor: pointer;
 }
 
-
+.guildAcronym{
+    position: relative;
+    top: -80%;
+    margin: auto;
+    text-align: center;
+    cursor: pointer;
+}
 
 .base{
     display: -webkit-box;
@@ -1573,13 +1587,29 @@ body{
 .memberName{
     display: -webkit-box;
     display: -ms-flexbox;
-    display: flex;
+    /* display: flex; */
     -webkit-box-pack: start;
     -ms-flex-pack: start;
     justify-content: flex-start;
     -webkit-box-align: center;
     -ms-flex-align: center;
     align-items: center;
+
+    display: flex;
+    flex-flow: row;
+}
+
+.memberNameText{
+    /* flex: 1; */
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.nitroBoostIcon{
+    /* flex: 1; */
+    color: #ff73fa;
+    width: 18px;
+    height: 18px;
 }
 
 .memberSubText{
@@ -2218,6 +2248,63 @@ a:-webkit-any-link:visited, a:-webkit-any-link:active, a:-webkit-any-link{
     word-break: break-all;
 }
 
+.messageReactionsWrapper{
+    margin-left: 5px;
+    padding-left: 50px;
+
+    display: grid;
+    grid-auto-flow: row;
+    grid-row-gap: .25rem;
+    text-indent: 0;
+    min-height: 0;
+    min-width: 0;
+    padding-top: .125rem;
+    padding-bottom: .125rem;
+}
+
+.messageReactionsContainer{
+    justify-self: start;
+    align-self: start;
+}
+
+.messageReaction{
+    border-radius: .25rem;
+    /* cursor: pointer; */
+    margin-right: .125rem;
+    margin-bottom: .125rem;
+    user-select: none;
+    transition: background-color .1s ease;
+    background: var(--background-modifier-accent);
+
+    flex-shrink: 0;
+    /* width: fit-content; */
+
+    display: initial;
+
+    align-items: center;
+    padding: 0 .375rem;
+
+    font-size: 0.875rem;
+    font-weight: 500;
+    /* margin-left: .375rem; */
+    text-align: center;
+    color: var(--text-muted);
+}
+
+.messageReaction:hover{
+    color: var(--interactive-hover);
+}
+
+.messageReactionSelf{
+    color: #7289da;
+    background-color: rgba(114,137,218,.3);
+}
+
+.messageReactionCustomEmoji{
+    width: 0.875rem;
+    height: 0.875rem;
+}
+
 .messageAttachment{
     position: relative;
     display: block;
@@ -2233,6 +2320,70 @@ a:-webkit-any-link:visited, a:-webkit-any-link:active, a:-webkit-any-link{
     user-select: text;
 
     outline: 0;
+}
+
+.messageInlineCodeBlock{
+    width: auto;
+    height: auto;
+    padding: .2em;
+    margin: -.2em 0;
+    border-radius: 3px;
+    font-size: 85%;
+    font-family: Consolas,Andale Mono WT,Andale Mono,Lucida Console,Lucida Sans Typewriter,DejaVu Sans Mono,Bitstream Vera Sans Mono,Liberation Mono,Nimbus Mono L,Monaco,Courier New,Courier,monospace;
+    text-indent: 0;
+    border: none;
+    white-space: pre-wrap;
+
+    line-height: 1.125rem;
+    background: var(--background-secondary);
+}
+
+.messageCodeBlock{
+    width: 90%;
+
+    font-size: 0.875rem;
+    line-height: 1.125rem;
+    text-indent: 0;
+    white-space: pre-wrap;
+    background: var(--background-secondary);
+    border: 1px solid var(--background-tertiary);
+
+    display: block;
+    overflow-x: auto;
+    padding: .5em;
+    border-radius: 4px;
+    color: var(--header-secondary);
+
+    font-family: Consolas,Andale Mono WT,Andale Mono,Lucida Console,Lucida Sans Typewriter,DejaVu Sans Mono,Bitstream Vera Sans Mono,Liberation Mono,Nimbus Mono L,Monaco,Courier New,Courier,monospace;
+}
+
+.messageSpoiler{
+    border-radius: 3px;
+    transition: all .1s ease;
+    background-color: hsla(0,0%,100%,.1);
+}
+
+.theme-dark .messageSpoiler{
+    background-color: hsla(0,0%,100%,.1)
+}
+
+.theme-light .messageSpoiler{
+    background-color: rgba(0,0,0,.1);
+}
+
+.theme-dark .messageSpoiler.hidden{
+    background-color: #202225;
+}
+
+.theme-light .messageSpoiler.hidden{
+    background-color: #b9bbbe;
+}
+
+.messageSpoiler.hidden{
+    color: #202225;
+    user-select: none;
+    cursor: pointer;
+    display: inline  !important;
 }
 
 .mFile{
@@ -2477,4 +2628,15 @@ a:-webkit-any-link:visited, a:-webkit-any-link:active, a:-webkit-any-link{
     font-family: Whitney, "Helvetica Neue", Helvetica, Arial, sans-serif;
 
     overflow: hidden;
+}
+
+.link{
+    color: var(--text-link);
+    word-break: break-word;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.link:hover{
+    text-decoration: underline;
 }

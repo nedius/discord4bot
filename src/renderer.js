@@ -83,18 +83,22 @@ function addGuild(guild){
 
     let guildImg = document.createElement('img'),
         guildWrapper = document.createElement('div'),
-        guildListItem = document.createElement('div');
+        guildListItem = document.createElement('div')
+        guildAcronym = document.createElement('div');
 
     guildImg.classList.add('guildImage');
     guildImg.alt = guild.name;
     guildImg.setAttribute("draggable", "false");
 
+    guildAcronym.classList.add('guildAcronym');
+    guildAcronym.classList.add('hidden');
+    guildAcronym.innerText = guild.nameAcronym;
+
     if(typeof(guild.iconURL) == "string" )
         guildImg.src = guild.iconURL;
     else{
-        // guildImg.alt = guild.nameAcronym;
-        // guildImg.style.backgroundColor = 'var(--background-secondary)';
         guildImg.src = "./img/placeholder.png";
+        guildAcronym.classList.remove('hidden');
     }
 
     guildWrapper.classList.add('wrapper');
@@ -104,6 +108,7 @@ function addGuild(guild){
     // guildListItem.setAttribute('data-title', guild.name);
     
     guildWrapper.append(guildImg);
+    guildWrapper.append(guildAcronym);
     guildListItem.append(guildWrapper);
 
     guildContainer.append(guildListItem);
@@ -833,7 +838,7 @@ function clearTaskBar(content = ''){
 }
 
 function addMemeber(user, channel){
-    // console.log(user.displayName, user);
+    console.log(user.displayName, user);
     let memberDiv = document.getElementById('memberDiv'),
         member = document.createElement('div'),
         memberLayout = document.createElement('div'),
@@ -846,7 +851,8 @@ function addMemeber(user, channel){
         memberActivity = document.createElement('div'),
         memberActivityEmoji = document.createElement('img'),
         memberGroup = document.createElement('header'),
-        botTag = document.createElement('span');
+        botTag = document.createElement('span'),
+        nitroBoost = document.createElement('svg');
 
     let statusIcons = {
         online: `
@@ -991,13 +997,13 @@ function addMemeber(user, channel){
             if(game.emoji){
                 if(game.emoji.id){
                     memberActivityEmoji.src = game.emoji.url;
-                    status += ` ${game.state}`;
+                    status += ` ${game.state !== null ? game.state : ''}`;
                     hasCustomEmoji = true;
                 }else{
-                    status += `${ game.emoji.name}  ${game.state}`;
+                    status += `${ game.emoji.name}  ${game.state !== null ? game.state : ''}`;
                 }
             }else{
-                status += `  ${game.state}`;
+                status += ` ${game.state !== null ? game.state : ''}`;
             }
         }
     }
@@ -1012,15 +1018,30 @@ function addMemeber(user, channel){
     botTag.classList.add('botTag');
     botTag.innerText = 'bot';
 
+    nitroBoost = document.createRange().createContextualFragment(`
+        <svg class="nitroBoostIcon" width="24" height="24" viewBox="0 0 8 12">
+            <path d="M4 0L0 4V8L4 12L8 8V4L4 0ZM7 7.59L4 10.59L1 7.59V4.41L4 1.41L7 4.41V7.59Z" fill="currentColor"></path>
+            <path d="M2 4.83V7.17L4 9.17L6 7.17V4.83L4 2.83L2 4.83Z" fill="currentColor"></path>
+        </svg>
+    `);
+
+    user.premiumSinceTimestamp;
+
     if(hasCustomEmoji) memberSubText.append(memberActivityEmoji);
     memberSubText.append(memberActivity);
-    memberName.innerText = user.nickname != null ? user.nickname : user.user.username;
+    let memberNameTemp = document.createElement('span');
+    memberNameTemp.classList.add('memberNameText');
+    memberNameTemp.innerText = user.nickname != null ? user.nickname : user.user.username;
+    memberName.append(memberNameTemp);
 
     if(user.colorRole) memberName.style.color = user.colorRole.hexColor;
 
     // console.log(user)
 
-    if(user.user.bot) memberName.append(botTag);
+    if(user.user.bot)
+        memberName.append(botTag);
+    if(user.premiumSinceTimestamp)
+        memberName.append(nitroBoost);
     memberContent.append(memberName);
     memberContent.append(memberSubText);
 
@@ -1173,7 +1194,6 @@ function get_url_extension( url ) {
 function updateChat(obj, options = {edited: false}){ //{edited = false, getMimeType}){
     // console.log(obj);
 
-
     let chatContent = document.getElementById('chatContent'),
         chatWrapper = document.getElementsByClassName('chatWrapper')[0],
         messageWrapper = document.createElement('div'),
@@ -1183,6 +1203,7 @@ function updateChat(obj, options = {edited: false}){ //{edited = false, getMimeT
         messageDelete = document.createElement('span'),
         messageContent = document.createElement('div'),
         messageAttachment = document.createElement('img'),
+        messageReactions = document.createElement('div'),
         messageSeparator = document.createElement('div'),
         messageSeparatorText = document.createElement('div'),
         botTag = document.createElement('span');
@@ -1205,6 +1226,7 @@ function updateChat(obj, options = {edited: false}){ //{edited = false, getMimeT
     messageContent.classList.add('messageContent');
     messageAttachment.classList.add('messageAttachment');
     messageAttachment.classList.add('loadingBg');
+    messageReactions.classList.add('messageReactionsWrapper');
     messageSeparator.classList.add('messageSeparator');
     messageSeparatorText.classList.add('messageSeparatorText');
     botTag.classList.add('botTag');
@@ -1254,7 +1276,41 @@ function updateChat(obj, options = {edited: false}){ //{edited = false, getMimeT
             _delete.setAttribute('messageId', data.message.id);
             _delete.addEventListener('click', options.deleteMessage);
         }
-        content.innerText = `${data.message.content}`;
+
+        //Message content parsing from https://github.com/SebOuellette/Discord-LiveBot
+        // Remove html in the message
+        let messageText = data.message.content.replace(/(<)([^>]+)(>)/gm, '&lt;$2&gt;');
+
+        // General message parsing
+        messageText = messageText.replace(/\n/g, '<br>');
+        messageText = messageText.replace(/ /g, ' NBSP_PLACEHOLDER ');
+        messageText = messageText.replace(/https?:\/\/[^ ]+(\.[^ ]+)+(\/[^ ]*)?/g, '<a class="link" href="$&" target="_blank">$&</a>');
+    
+        // Add html tags for markup
+        messageText = messageText.replace(/\*\*(.*?)\*\*/gm, '<strong>$1</strong>');
+        messageText = messageText.replace(/__(.*?)__/gm, '<u>$1</u>');
+        messageText = messageText.replace(/\*(.*?)\*/gm, '<i>$1</i>');
+        messageText = messageText.replace(/~~(.*?)~~/gm, '<strike>$1</strike>');
+        messageText = messageText.replace(/```(.*?)```/gs, `<div class="messageCodeBlock">$1</div>`);
+        messageText = messageText.replace(/`(.*?)`/gm, '<span class="messageInlineCodeBlock">$1</span>');
+        messageText = messageText.replace(/\|\|(.*?)\|\|/gm, '<span class="messageSpoiler hidden" >$1</span>');
+
+        function discoverSpoiler(e){
+            e.target.classList.remove('hidden');
+        }
+            
+        // Replace the placeholder with a real nbsp
+        messageText = messageText.replace(/ NBSP_PLACEHOLDER /g, '&nbsp;');
+
+        content.innerHTML = `${messageText}`;
+
+        let spoilers = content.getElementsByClassName('messageSpoiler');
+        if(spoilers.length > 0){
+            for(el of spoilers){
+                el.addEventListener('click', discoverSpoiler)
+            }
+        }
+        
         if(data.message.editedTimestamp !== null){
             let temp = document.createElement('span');
             temp.innerHTML = ` (edited)`;
@@ -1503,6 +1559,40 @@ function updateChat(obj, options = {edited: false}){ //{edited = false, getMimeT
             });
         }
 
+        let reactions = [];
+        if(data.message.reactions.size>0){
+            data.message.reactions.forEach(reaction =>{
+                // let content = messageReactions.cloneNode();
+                // console.log(reaction.emoji.name, reaction.count, reaction.me)
+                
+                let container = document.createElement('div');
+
+                container.classList.add('messageReaction');
+                if(reaction.me) container.classList.add('messageReactionSelf');
+
+                container.setAttribute('name', reaction.emoji.id ? `${reaction.emoji.name}:${reaction.emoji.id}` : reaction.emoji.name);
+                container.setAttribute('message', reaction.message.id);
+                container.setAttribute('channel', reaction.message.channel.id);
+                container.setAttribute('guild', reaction.message.guild.id);
+
+                // console.log(reaction)
+                if(reaction.emoji.id){
+                    let customEmoji = document.createElement('img');
+                    customEmoji.classList.add('messageReactionCustomEmoji');
+                    customEmoji.src = reaction.emoji.url;
+                    container.innerText = ` ${reaction.count}`;
+                    container.prepend(customEmoji);
+
+                }else{
+                    container.innerText = `${reaction.emoji.name} ${reaction.count}`;
+                }
+
+                if(options.react) container.addEventListener('click', options.react);
+
+                reactions.push(container);
+            });
+        }
+
         // document.getElementById('chatContent').innerText += `${data.date.hour}:${data.date.minute} ${data.message.member.nickname !== null ? data.message.member.nickname : data.message.author.username} ${data.message.content}\n`;
 
         container.append(time);
@@ -1518,12 +1608,22 @@ function updateChat(obj, options = {edited: false}){ //{edited = false, getMimeT
         if(data.message.embeds.length>0){
             embeds.forEach(embed => container.append(embed));
         } 
+        if(data.message.reactions.size>0){
+            let reactionWrapper = messageReactions.cloneNode(),
+                reactionContainer = document.createElement('div');
+
+            reactionContainer.classList.add('messageReactionsContainer');
+
+            reactions.forEach(reaction => reactionContainer.append(reaction));
+
+            reactionWrapper.append(reactionContainer);
+            container.append(reactionWrapper);
+        }
         // wrapper.append(time);
         wrapper.append(container);
         if(options.edited){
             let msg = document.getElementById(`msg/${data.message.id}`);
             msg.parentNode.replaceChild(wrapper, msg);
-
         }else{
             chatWrapper.append(wrapper);
         }
@@ -1534,6 +1634,9 @@ function updateChat(obj, options = {edited: false}){ //{edited = false, getMimeT
 
     chatContent.getElementsByClassName('chatWrapper')[0].scrollTop = chatContent.getElementsByClassName('chatWrapper')[0].scrollHeight;
 
+    // obj[0].message.guild.fetchAuditLogs()
+    //     .then(audit => console.log(audit.entries))
+    //     .catch(console.error);
 }
 
 function selectPicture(e){
