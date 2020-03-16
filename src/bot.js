@@ -60,7 +60,9 @@ client.on('message', msg => {
     let channelId = msg.channel.id,
         channel = document.getElementById(`chc/${channelId}`);
 
-    if(channel && store.get('lastChannel') === `chc/${channelId}`) updateChat([{date: timestampToObject(msg.createdTimestamp), message: msg}], {getMimeType: getMimeType, send:sendMessage, deleteMessage: deleteMessage, react: reactMessage});
+    if(store.get('lastGuild') !== `gd/${msg.guild.id}`) document.getElementById(`gd/${msg.guild.id}`).classList.add('newMessage');
+
+    if(channel && store.get('lastChannel') === `chc/${channelId}`) updateChat([{date: timestampToObject(msg.createdTimestamp), message: msg}], {getMimeType: getMimeType, send:sendMessage, deleteMessage: deleteMessage, react: reactMessage, channel: msg.channel});
 });
 
 client.on('messageUpdate', (old, msg) => {
@@ -69,7 +71,7 @@ client.on('messageUpdate', (old, msg) => {
     let channelId = msg.channel.id,
         channel = document.getElementById(`chc/${channelId}`);
 
-    if(channel && store.get('lastChannel') === `chc/${channelId}`) updateChat([{date: timestampToObject(msg.createdTimestamp), message: msg}], {edited: true, getMimeType: getMimeType, send:sendMessage, deleteMessage: deleteMessage, react: reactMessage});
+    if(channel && store.get('lastChannel') === `chc/${channelId}`) updateChat([{date: timestampToObject(msg.createdTimestamp), message: msg}], {edited: true, getMimeType: getMimeType, send:sendMessage, deleteMessage: deleteMessage, react: reactMessage, channel: msg.channel});
 });
 
 client.on('messageDelete', (msg) => {
@@ -127,7 +129,7 @@ client.on('messageReactionAdd', (reaction, user) => {
         channel = document.getElementById(`chc/${channelId}`);
 
     if(channel && store.get('lastChannel') === `chc/${channelId}`){
-        updateChat([{date: timestampToObject(reaction.message.createdTimestamp), message: reaction.message}], {edited: true, getMimeType: getMimeType, send:sendMessage, deleteMessage: deleteMessage, react: reactMessage});
+        updateChat([{date: timestampToObject(reaction.message.createdTimestamp), message: reaction.message}], {edited: true, getMimeType: getMimeType, send:sendMessage, deleteMessage: deleteMessage, react: reactMessage, channel: reaction.message.channel});
     }
     
 });
@@ -141,7 +143,7 @@ client.on('messageReactionRemoveEmoji', (reaction) => { // messageReactionRemove
 
     if(channel && store.get('lastChannel') === `chc/${channelId}`){ //get message from disxord but its still incorrect
         reaction.message.channel.fetchMessage(reaction.message.id).then(msg => {
-            updateChat([{date: timestampToObject(msg.createdTimestamp), message: msg}], {edited: true, getMimeType: getMimeType, send:sendMessage, deleteMessage: deleteMessage, react: reactMessage});
+            updateChat([{date: timestampToObject(msg.createdTimestamp), message: msg}], {edited: true, getMimeType: getMimeType, send:sendMessage, deleteMessage: deleteMessage, react: reactMessage, channel: msg.channel});
         })
     }
     
@@ -192,6 +194,8 @@ function selectGuild(e){
 
     let guild = client.guilds.get(guildId.substring(3)),
         firstTextChannel;
+
+    document.getElementById(guildId).classList.remove('newMessage');
 
     if(document.getElementById(guildId).classList.contains('guildSelected'))
         return;
@@ -494,7 +498,7 @@ function selectChannelForChat(e){
 
                 // console.log(messagesText);
                 // document.getElementById('chatContent').innerText = messagesText;
-                updateChat(obj, {getMimeType: getMimeType, send:sendMessage, deleteMessage: deleteMessage, react: reactMessage});
+                updateChat(obj, {getMimeType: getMimeType, send:sendMessage, deleteMessage: deleteMessage, react: reactMessage, channel: channel});
             })
             .catch(console.error);
 

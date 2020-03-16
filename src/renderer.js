@@ -607,71 +607,6 @@ function randomMotd(){
     document.getElementById('authSubTitle').innerText = reason;
 }
 
-function addChatOpDeprecated(channel, data, method = ''){
-    let chatContent = document.getElementById('chatContent'),
-    name = document.createElement('span'),
-    input = document.createElement('input'),
-    btn = document.createElement('button'),
-    div = document.createElement('div'),
-    separator = document.createElement('div');
-    
-    // console.log(channel, data, method);
-
-    if(channel[data] == '__SEPARATOR'){
-        separator.classList.add('channelOptionSeparator');
-        chatContent.append(separator)
-        return;
-    }
-
-    name.classList.add('channelOptionName');
-    name.innerText = `${data}`;
-
-    input.classList.add('channelOptionInput');
-    input.value = channel[data];
-    if(method=='') input.readOnly = true;
-    input.type = typeof(channel[data]);
-
-    btn.classList.add('channelOptionButton');
-    btn.innerText = 'Save';
-
-    if(data === 'id'){
-        btn.innerText = 'Copy';
-        btn.style.backgroundColor = '#43b581';
-
-        btn.addEventListener('click', (e) =>{
-            let value = e.target.parentNode.children[1].value;
-
-            navigator.clipboard.writeText(value).then(function() {
-                // console.log('Async: Copying to clipboard was successful!');
-              }, function(err) {
-                console.error('Async: Could not copy text: ', err);
-              });
-        });
-    }
-
-    div.classList.add('channelOption');
-    div.setAttribute('channel', channel.id);
-    div.setAttribute('guild', channel.guild.id);
-    if(method !== '')
-        div.setAttribute('method', method);
-    div.setAttribute('originalValue', channel[data]);
-
-    separator.classList.add('channelOptionSeparator');
-
-    div.append(name);
-    div.append(input);
-    if(method!=='' || data==='id') div.append(btn);
-
-    chatContent.append(div);
-
-    // console.log(data);
-    // console.log(data, '(', typeof(channel[data]) , ')', ': ',  channel[data]);
-    // if(method!='')
-    //     document.getElementById('chatContent').innerHTML += `<p class="red">${data}: ${channel[data]} [method: ${method}] </p><br>`;
-    // else
-    //     document.getElementById('chatContent').innerHTML += `<p>${data}: ${channel[data]} </p><br>`;
-}
-
 function clearChat(){ 
     document.getElementById('chatContent').innerHTML = '';
     document.getElementById('chatContent').style = 'overflow-y: scroll;';
@@ -838,7 +773,7 @@ function clearTaskBar(content = ''){
 }
 
 function addMemeber(user, channel){
-    console.log(user.displayName, user);
+    // console.log(user.displayName, user);
     let memberDiv = document.getElementById('memberDiv'),
         member = document.createElement('div'),
         memberLayout = document.createElement('div'),
@@ -1210,7 +1145,10 @@ function updateChat(obj, options = {edited: false}){ //{edited = false, getMimeT
 
     if(!chatWrapper){
         if(options.send){
-            createChat(options.send, obj[0].message.channel);
+            if(options.channel)
+                createChat(options.send, options.channel);
+            else
+                createChat(options.send);
         } else{
             createChat();
         }
@@ -1277,32 +1215,7 @@ function updateChat(obj, options = {edited: false}){ //{edited = false, getMimeT
             _delete.addEventListener('click', options.deleteMessage);
         }
 
-        //Message content parsing from https://github.com/SebOuellette/Discord-LiveBot
-        // Remove html in the message
-        let messageText = data.message.content.replace(/(<)([^>]+)(>)/gm, '&lt;$2&gt;');
-
-        // General message parsing
-        messageText = messageText.replace(/\n/g, '<br>');
-        messageText = messageText.replace(/ /g, ' NBSP_PLACEHOLDER ');
-        messageText = messageText.replace(/https?:\/\/[^ ]+(\.[^ ]+)+(\/[^ ]*)?/g, '<a class="link" href="$&" target="_blank">$&</a>');
-    
-        // Add html tags for markup
-        messageText = messageText.replace(/\*\*(.*?)\*\*/gm, '<strong>$1</strong>');
-        messageText = messageText.replace(/__(.*?)__/gm, '<u>$1</u>');
-        messageText = messageText.replace(/\*(.*?)\*/gm, '<i>$1</i>');
-        messageText = messageText.replace(/~~(.*?)~~/gm, '<strike>$1</strike>');
-        messageText = messageText.replace(/```(.*?)```/gs, `<div class="messageCodeBlock">$1</div>`);
-        messageText = messageText.replace(/`(.*?)`/gm, '<span class="messageInlineCodeBlock">$1</span>');
-        messageText = messageText.replace(/\|\|(.*?)\|\|/gm, '<span class="messageSpoiler hidden" >$1</span>');
-
-        function discoverSpoiler(e){
-            e.target.classList.remove('hidden');
-        }
-            
-        // Replace the placeholder with a real nbsp
-        messageText = messageText.replace(/ NBSP_PLACEHOLDER /g, '&nbsp;');
-
-        content.innerHTML = `${messageText}`;
+        content.innerHTML = prepare(data.message.content);
 
         let spoilers = content.getElementsByClassName('messageSpoiler');
         if(spoilers.length > 0){
@@ -1315,6 +1228,7 @@ function updateChat(obj, options = {edited: false}){ //{edited = false, getMimeT
             let temp = document.createElement('span');
             temp.innerHTML = ` (edited)`;
             temp.style.color = "var(--channels-default)";
+            temp.style.userSelect = "none";
             content.append(temp);
         }
 
@@ -1456,12 +1370,68 @@ function updateChat(obj, options = {edited: false}){ //{edited = false, getMimeT
 
                 switch(embed.type){
                     case 'rich':{
-                        let temp = document.createElement('div');
-                        temp.innerHTML = `has ${embed.type} embed/s`;
-                        temp.style.color = "var(--channels-default)";
-                        content.append(temp);
+                        // https://leovoel.github.io/embed-visualizer/
+                        // let temp = document.createElement('div');
+                        // temp.innerHTML = `has ${embed.type} embed/s`;
+                        // temp.style.color = "var(--channels-default)";
+                        // content.append(temp);
+                        console.log(embed);
+                        let messageEmbedContainer = document.createElement('div'),
+                            messageEmbedField = document.createElement('div');
 
-                        // element = temp;
+                        messageEmbedContainer.classList.add('messageEmbedContainer');
+                        messageEmbedField.classList.add('messageEmbedField');
+
+                        if(embed.color){
+                            messageEmbedContainer.style.borderColor = `#${embed.color.toString(16)}`;
+                        }
+                        if(embed.author){
+                            let embedField = messageEmbedField.cloneNode();
+                            embedField.innerHTML = `${prepare(embed.author.name)}`;
+                            messageEmbedContainer.append(embedField);
+                        }
+                        if(embed.title){
+                            let embedField = messageEmbedField.cloneNode();
+                            embedField.classList.add('messageEmbedTitle');
+                            embedField.innerHTML = `${prepare(embed.title)}`;
+                            messageEmbedContainer.append(embedField);
+                        }
+                        if(embed.description){
+                            let embedField = messageEmbedField.cloneNode();
+                            embedField.innerHTML = `${prepare(embed.description)}`;
+                            messageEmbedContainer.append(embedField);
+                        }
+                        if(embed.fields.length>0){
+                            embed.fields.forEach(field => {
+                                let embedFieldName = messageEmbedField.cloneNode(),
+                                    embedFieldValue = messageEmbedField.cloneNode();
+                                embedFieldName.classList.add('messageEmbedFieldName');
+                                embedFieldName.innerHTML = `${prepare(field.name)}`;
+                                embedFieldValue.innerHTML = `${prepare(field.value)}`;
+                                messageEmbedContainer.append(embedFieldName);
+                                messageEmbedContainer.append(embedFieldValue);
+                            });
+                        }
+                        if(embed.footer){
+                            let embedField = messageEmbedField.cloneNode();
+                            embedField.classList.add('messageEmbedFieldFooter');
+                            embedField.innerHTML = `${prepare(embed.footer.text)}`;
+                            if(embed.timestamp){
+                                let time = timestampToObject(embed.timestamp);
+                                embedField.innerHTML += ` ${time.hour < 10 ? '0' : ''}${time.hour}:${time.minute < 10 ? '0' : ''}${time.minute}&nbsp;${time.day}&nbsp;${time.monthWord}&nbsp;${time.year}`;
+                            }
+                            messageEmbedContainer.append(embedField);
+                        }
+
+                        let spoilers = messageEmbedContainer.getElementsByClassName('messageSpoiler');
+                        if(spoilers.length > 0){
+                            for(el of spoilers){
+                                el.addEventListener('click', discoverSpoiler)
+                            }
+                        }
+
+                        // console.log(messageEmbedContainer);
+                        element = messageEmbedContainer;
                         break;
                     }
                     case 'image':{
@@ -1675,6 +1645,36 @@ function selectPicture(e){
     wrapper.append(url);
     bg.append(wrapper);
     document.body.append(bg);
+}
+
+function prepare(text){
+    // Message content parsing from https://github.com/SebOuellette/Discord-LiveBot
+    // Remove html in the message
+    let str = text.replace(/(<)([^>]+)(>)/gm, '&lt;$2&gt;');
+
+    // General message parsing
+    str = str.replace(/\n/g, '<br>');
+    str = str.replace(/ /g, ' NBSP-PLACEHOLDER ');
+    str = str.replace(/https?:\/\/[^ ]+(\.[^ ]+)+(\/[^ ]*)?/g, '<a class="link" href="$&" target="_blank">$&</a>');
+
+    // Add html tags for markup
+    str = str.replace(/\*\*(.*?)\*\*/gm, '<strong>$1</strong>');
+    str = str.replace(/__(.*?)__/gm, '<u>$1</u>');
+    str = str.replace(/\*(.*?)\*/gm, '<i>$1</i>');
+    str = str.replace(/\_(.*?)\_/gm, '<i>$1</i>');
+    str = str.replace(/~~(.*?)~~/gm, '<strike>$1</strike>');
+    str = str.replace(/```(.*?)```/gs, `<div class="messageCodeBlock">$1</div>`);
+    str = str.replace(/`(.*?)`/gm, '<span class="messageInlineCodeBlock">$1</span>');
+    str = str.replace(/\|\|(.*?)\|\|/gm, '<span class="messageSpoiler hidden" >$1</span>');
+        
+    // Replace the placeholder with a real nbsp
+    str = str.replace(/ NBSP-PLACEHOLDER /g, '&nbsp;');
+
+    return str;
+}
+
+function discoverSpoiler(e){
+    e.target.classList.remove('hidden');
 }
 
 function formatBytes(bytes, decimals = 2) {
