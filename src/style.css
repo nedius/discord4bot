@@ -2391,6 +2391,11 @@ a:-webkit-any-link:visited, a:-webkit-any-link:active, a:-webkit-any-link{
     height: 0.875rem;
 }
 
+.messageCustomEmoji{
+    width: 0.875rem;
+    height: 0.875rem;
+}
+
 .messageAttachment{
     position: relative;
     display: block;
@@ -2743,7 +2748,9 @@ a:-webkit-any-link:visited, a:-webkit-any-link:active, a:-webkit-any-link{
     display: flex;
     flex-direction: column;
     margin-top: 3px;
-    width: min-content;
+    width: auto;
+    overflow: auto;
+    word-break: break-word;
 }
 
 .messageEmbedField{

@@ -16,7 +16,7 @@
   "author": "nedius",
   "license": "CC0-1.0",
   "devDependencies": {
-    "electron": "^7.1.12"
+    "electron": "^8.4.1"
   },
   "build": {
     "files": [
@@ -26,8 +26,8 @@
   },
   "dependencies": {
     "bufferutil": "^4.0.1",
-    "discord.js": "^11.6.0",
-    "electron-store": "^5.1.0",
+    "discord.js": "^11.6.4",
+    "electron-store": "^5.2.0",
     "node-fetch": "^2.6.0"
   }
 }

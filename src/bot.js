@@ -62,7 +62,21 @@ client.on('message', msg => {
 
     if(store.get('lastGuild') !== `gd/${msg.guild.id}`) document.getElementById(`gd/${msg.guild.id}`).classList.add('newMessage');
 
-    if(channel && store.get('lastChannel') === `chc/${channelId}`) updateChat([{date: timestampToObject(msg.createdTimestamp), message: msg}], {getMimeType: getMimeType, send:sendMessage, deleteMessage: deleteMessage, react: reactMessage, channel: msg.channel});
+    if(channel && store.get('lastChannel') === `chc/${channelId}`){
+        updateChat([{date: timestampToObject(msg.createdTimestamp), message: msg}], {getMimeType: getMimeType, send:sendMessage, deleteMessage: deleteMessage, react: reactMessage, channel: msg.channel});
+        
+        let imgsForResolving = document.getElementsByClassName('needEmojiResolving');
+        for(emoji of imgsForResolving){
+            emoji.classList.remove('needEmojiResolving');
+            if(client.emojis.get(emoji.getAttribute('data-id'))){
+                emoji.src = client.emojis.get(emoji.getAttribute('data-id')).url;
+            }
+            else{
+                emoji.src = `https://cdn.discordapp.com/emoji/${emoji.getAttribute('data-id')}.png`;
+            }
+        }
+    } 
+
 });
 
 client.on('messageUpdate', (old, msg) => {
@@ -123,7 +137,7 @@ client.on('presenceUpdate', (oldM, newM) => {
 
 client.on('messageReactionAdd', (reaction, user) => {
     // console.log(reaction, user);
-    console.log(`reaction added`);
+    // console.log(`reaction added`);
 
     let channelId = reaction.message.channel.id,
         channel = document.getElementById(`chc/${channelId}`);
@@ -134,17 +148,18 @@ client.on('messageReactionAdd', (reaction, user) => {
     
 });
 
-client.on('messageReactionRemoveEmoji', (reaction) => { // messageReactionRemove
+client.on('messageReactionRemove', (reaction, user) => { // messageReactionRemove
     // console.log(reaction, user);
-    console.log(`reaction removed`);
+    // console.log(`reaction removed`);
 
     let channelId = reaction.message.channel.id,
-        channel = document.getElementById(`chc/${channelId}`);
+        channel = document.getElementById(`chc/${channelId}`),
+        msg = reaction.message;
 
     if(channel && store.get('lastChannel') === `chc/${channelId}`){ //get message from disxord but its still incorrect
-        reaction.message.channel.fetchMessage(reaction.message.id).then(msg => {
+        // reaction.message.channel.fetchMessage(reaction.message.id).then(msg => {
             updateChat([{date: timestampToObject(msg.createdTimestamp), message: msg}], {edited: true, getMimeType: getMimeType, send:sendMessage, deleteMessage: deleteMessage, react: reactMessage, channel: msg.channel});
-        })
+        // })
     }
     
 });
@@ -499,10 +514,22 @@ function selectChannelForChat(e){
                 // console.log(messagesText);
                 // document.getElementById('chatContent').innerText = messagesText;
                 updateChat(obj, {getMimeType: getMimeType, send:sendMessage, deleteMessage: deleteMessage, react: reactMessage, channel: channel});
+                
+                let imgsForResolving = document.getElementsByClassName('needEmojiResolving');
+                for(emoji of imgsForResolving){
+                    emoji.classList.remove('needEmojiResolving');
+                    if(client.emojis.get(emoji.getAttribute('data-id'))){
+                        emoji.src = client.emojis.get(emoji.getAttribute('data-id')).url;
+                    }
+                    else{
+                        emoji.src = `https://cdn.discordapp.com/emoji/${emoji.getAttribute('data-id')}.png`;
+                    }
+                }
             })
             .catch(console.error);
 
         loadMembers(channel.guild, channel);
+
 
         store.set('lastChannel', channelId); //word-break: break-all;
     }

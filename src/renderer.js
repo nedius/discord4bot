@@ -1375,7 +1375,7 @@ function updateChat(obj, options = {edited: false}){ //{edited = false, getMimeT
                         // temp.innerHTML = `has ${embed.type} embed/s`;
                         // temp.style.color = "var(--channels-default)";
                         // content.append(temp);
-                        console.log(embed);
+                        // console.log(embed);
                         let messageEmbedContainer = document.createElement('div'),
                             messageEmbedField = document.createElement('div');
 
@@ -1661,16 +1661,19 @@ function prepare(text){
     str = str.replace(/\*\*(.*?)\*\*/gm, '<strong>$1</strong>');
     str = str.replace(/__(.*?)__/gm, '<u>$1</u>');
     str = str.replace(/\*(.*?)\*/gm, '<i>$1</i>');
-    str = str.replace(/\_(.*?)\_/gm, '<i>$1</i>');
+    str = ` ${str} `;
+    str = str.replace(/ \_(.*?)\_ /gm, ' <i>$1</i> ');
     str = str.replace(/~~(.*?)~~/gm, '<strike>$1</strike>');
     str = str.replace(/```(.*?)```/gs, `<div class="messageCodeBlock">$1</div>`);
     str = str.replace(/`(.*?)`/gm, '<span class="messageInlineCodeBlock">$1</span>');
     str = str.replace(/\|\|(.*?)\|\|/gm, '<span class="messageSpoiler hidden" >$1</span>');
+
+    str = str.replace(/\&lt;a*:(.*?):(\d+?)\&gt;/gm, '<img src="" class="messageCustomEmoji needEmojiResolving" data-id="$2" alt=":$1:">');
         
     // Replace the placeholder with a real nbsp
     str = str.replace(/ NBSP-PLACEHOLDER /g, '&nbsp;');
 
-    return str;
+    return str.trim();
 }
 
 function discoverSpoiler(e){

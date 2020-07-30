@@ -9,4 +9,5 @@ discord4bot-win32-x64/
 *.lnk
 src/real.css
 src/index-old.html
+src/weebify.js
 .VSCodeCounter/
