@@ -28,6 +28,6 @@
     "bufferutil": "^4.0.1",
     "discord.js": "^11.6.4",
     "electron-store": "^5.2.0",
-    "node-fetch": "^2.6.0"
+    "node-fetch": "^2.6.1"
   }
 }
