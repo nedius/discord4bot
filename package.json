@@ -16,7 +16,7 @@
   "author": "nedius",
   "license": "CC0-1.0",
   "devDependencies": {
-    "electron": "^8.4.1"
+    "electron": "^8.5.1"
   },
   "build": {
     "files": [
