@@ -9,14 +9,22 @@ var body = document.body;
 var btnChangeTheme = document.getElementById('btnChangeTheme');
 
 function changeTheme(theme){
+    console.log(theme)
+
+    transition(theme == 'toggle' ? true : false);
     body.classList.add('color-transition');
 
     if(theme == 'dark'){
         body.classList.remove("theme-light");
+        // body.classList.add("theme-dark");
     }else if(theme == 'light'){
         body.classList.add("theme-light");
+        // body.classList.remove("theme-dark");
     }else if(theme == 'toggle'){
-        body.classList.toggle("theme-light");
+        setTimeout(() => {
+            body.classList.toggle("theme-light");
+            // body.classList.toggle("theme-dark");
+        }, 500);
     }
 
     setTimeout(() => {
@@ -26,6 +34,33 @@ function changeTheme(theme){
 
 function isLightTheme(){
     return body.classList.contains("theme-light");
+}
+
+function transition(bool){
+    if(bool){
+        let app = document.getElementById('appMount'),
+            offset = 0,
+            step = document.body.clientWidth / 100;
+    
+        app.style.left = '0px'
+    
+        let anim = setInterval(() => {
+            offset += step;
+            app.style.left = `${offset}px`
+        }, 1);
+
+        setTimeout(() => {
+            clearInterval(anim);
+            anim = setInterval(() => {
+                offset -= step;
+                app.style.left = `${offset}px`
+            }, 1);
+            setTimeout(() => {
+                clearInterval(anim);
+                app.style.left = '';
+            }, 500);
+        }, 500);
+    }
 }
 
 window.addEventListener('DOMContentLoaded', () => {
@@ -847,6 +882,25 @@ function addMemeber(user, channel){
                     transform="matrix(0.26458334,0,0,0.26458334,0,0)"
                     d="M 61.5,22.107422 C 39.744271,22.107884 22.107884,39.744271 22.107422,61.5 22.107883,83.25573 39.74427,100.89212 61.5,100.89258 83.25573,100.89212 100.89212,83.25573 100.89258,61.5 100.89212,39.74427 83.25573,22.107883 61.5,22.107422 Z M 61.5,34.625 A 26.875,26.875 0 0 1 88.375,61.5 26.875,26.875 0 0 1 61.5,88.375 26.875,26.875 0 0 1 34.625,61.5 26.875,26.875 0 0 1 61.5,34.625 Z"/>
             </svg>`,
+        mobile: `
+            <svg
+                class="memberAvatarMask"
+                viewBox="0 0 32.543749 32.543753"
+                mobile>
+                <rect
+                    fill="var(--background-secondary)"
+                    ry="5"
+                    rx="5"
+                    y="-5px"
+                    x="-3px"
+                    height="40px"
+                    width="32px" />
+                <path
+                    fill="#43b581"
+                    transform="matrix(0.4,0,0,0.4,-59,-59)"
+                    d="m 164.86914,149.05078 c -6.094,0 -11,4.906 -11,11 v 63.35352 c 0,6.094 4.906,11 11,11 h 33.91602 c 6.094,0 11,-4.906 11,-11 v -63.35352 c 0,-6.094 -4.906,-11 -11,-11 z m -0.14854,9.69727 34.08683,0 c 0.554,0 1,0.4883 1,1.0957 v 42.25235 c 0,0.6074 -0.446,1.0957 -1,1.0957 l -34.08683,0 c -0.554,0 -1,-0.4883 -1,-1.0957 v -42.25235 c 0,-0.6074 0.446,-1.0957 1,-1.0957 z m 17.79112,51.61133 c 5.02059,8.5e-4 9.09007,4.0712 9.08984,9.09179 2.4e-4,5.02059 -4.06925,9.09095 -9.08984,9.0918 -5.02136,2.4e-4 -9.09204,-4.07044 -9.0918,-9.0918 -2.3e-4,-5.02136 4.07044,-9.09203 9.0918,-9.09179 z"
+               </svg>`,
+            // <rect width="10" height="15" x="22" y="17" fill="#43b581" mask="url(#svg-mask-status-online-mobile)" class="pointerEvents-2zdfdO"></rect>
     };
 
     function hasPermissions(member){
@@ -960,7 +1014,7 @@ function addMemeber(user, channel){
         </svg>
     `);
 
-    user.premiumSinceTimestamp;
+    // user.premiumSinceTimestamp;
 
     if(hasCustomEmoji) memberSubText.append(memberActivityEmoji);
     memberSubText.append(memberActivity);
@@ -988,7 +1042,11 @@ function addMemeber(user, channel){
     // memberAvatarMaskActivity.style = 'border-radius: 0;';
 
     // console.log(statusIcons[user.presence.status]);
-    memberAvatarMaskActivity = document.createRange().createContextualFragment(statusIcons[user.presence.status]);
+    if(user.presence.clientStatus){
+        memberAvatarMaskActivity = document.createRange().createContextualFragment(statusIcons[user.presence.clientStatus.mobile ? `mobile` : user.presence.status]);
+    }else{
+        memberAvatarMaskActivity = document.createRange().createContextualFragment(statusIcons[user.presence.status]);
+    }
     memberAvatarMaskActivity.style = 'border-radius: 0;';
     // console.log(memberAvatarMaskActivity);
 
@@ -1278,6 +1336,11 @@ function updateChat(obj, options = {edited: false}){ //{edited = false, getMimeT
                 
                 // temp.classList.add('loadingBg');
 
+                const volumeChanged = (e) => {
+                    // alert(`The volume has been changed to ${e.target.volume}!`);
+                    localStorage.setItem('avVolume', e.target.volume);
+                }
+
                 switch(type){
                     case 'img': {
                         temp.src = `${att.url}`;
@@ -1322,6 +1385,9 @@ function updateChat(obj, options = {edited: false}){ //{edited = false, getMimeT
                         temp.style.width = `${size.width}px`;
                         temp.style.height = `${size.height}px`;
 
+                        temp.volume = localStorage.getItem('avVolume') ? localStorage.getItem('avVolume') : 1;
+                        temp.addEventListener('volumechange', volumeChanged);
+
                         break;
                     }
                     case 'audio': {
@@ -1330,6 +1396,10 @@ function updateChat(obj, options = {edited: false}){ //{edited = false, getMimeT
 
                         temp.style.width = `inherit`;
                         temp.style.height = `40px`;
+
+                        // localStorage.setItem('avVolume', 1);
+                        temp.volume = localStorage.getItem('avVolume') ? localStorage.getItem('avVolume') : 1;
+                        temp.addEventListener('volumechange', volumeChanged);
 
                         break;
                     }
@@ -1655,7 +1725,8 @@ function prepare(text){
     // General message parsing
     str = str.replace(/\n/g, '<br>');
     str = str.replace(/ /g, ' NBSP-PLACEHOLDER ');
-    str = str.replace(/https?:\/\/[^ ]+(\.[^ ]+)+(\/[^ ]*)?/g, '<a class="link" href="$&" target="_blank">$&</a>');
+    str = str.replace(/[(http(s)?):\/\/(www\.)?a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_\+.~#?&//=]*)/gi, '<a class="link" href="$&" target="_blank">$&</a>');
+    // str = str.replace(/https?:\/\/[^ ]+(\.[^ ]+)+(\/[^ ]*)?/g, '<a class="link" href="$&" target="_blank">$&</a>');
 
     // Add html tags for markup
     str = str.replace(/\*\*(.*?)\*\*/gm, '<strong>$1</strong>');

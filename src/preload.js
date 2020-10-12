@@ -142,7 +142,9 @@ window.addEventListener('DOMContentLoaded', () => {
 
   btnChangeTheme.addEventListener('click', function(){
     changeTheme('toggle');
-    store.set('themeType', isLightTheme() ? 'light' : 'dark');
+    setTimeout(() => {
+      store.set('themeType', isLightTheme() ? 'light' : 'dark');
+    }, 1100);
   });
   
   document.getElementById('btnClose').addEventListener('click', function(){
