@@ -10,6 +10,26 @@ module.exports = {
 };
 
 var ping = 0;
+var availableRegions = ["us-west",
+                        "us-east",
+                        "us-central",
+                        "us-south",
+                        "singapore",
+                        "southafrica",
+                        "sydney",
+                        "europe",
+                        "brazil",
+                        "hongkong",
+                        "russia",
+                        "japan",
+                        "india",
+                        "dubai",
+                        "amsterdam",
+                        "london",
+                        "frankfurt",
+                        "eu-central",
+                        "eu-west"
+                    ];
 
 client.on('ready', () => {
     console.log(`Logged in as ${client.user.tag}!`);
@@ -21,6 +41,13 @@ client.on('ready', () => {
             ping = client.ping;
         }
     }, 5000);
+
+    client.fetchVoiceRegions()
+        .then(regions => {
+            console.log(regions, regions.map(region => region.id));
+            availableRegions = regions.map(region => region.id)
+        })
+        .catch(console.error);
 
     setClientUser(client.user);
 
@@ -338,6 +365,7 @@ function getGuildOptions(e){
                         {name : 'memberCount', method : ""},
                         {name : 'createdAt', method : ""},
                         {name : 'joinedAt', method : ""},
+                        {name : 'region', method : "setRegion", inputOptions : availableRegions},
     ];
 
     whitelist.has = function(string){
@@ -365,7 +393,7 @@ function getGuildOptions(e){
         parent.children[1].classList.remove('error');
         clearTaskBar();
 
-        // console.log(target, opBtn, parent, gdId, mbId, method, value, originalValue);
+        // console.log(target, /*opBtn,*/ parent, gdId, /*mbId,*/ method, value, originalValue);
             
         if(value == originalValue)
             return;
@@ -393,7 +421,7 @@ function getGuildOptions(e){
         // console.log(data);
         if(typeof(guild[data.name]) == 'undefined')
             continue;
-            let opt = { type: 'input', channel: guild, data: data.name, method: data.method };
+            let opt = { type: 'input', channel: guild, data: data.name, method: data.method, inputOptions: data.inputOptions };
             if(data.method !== '') opt.callback = saveOption;
             options.push(opt);
             // addChatOpDeprecated(channel, data.name, data.method);

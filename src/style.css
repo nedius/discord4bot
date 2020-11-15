@@ -2242,7 +2242,8 @@ a:-webkit-any-link:visited, a:-webkit-any-link:active, a:-webkit-any-link{
 .channelOptionSeparator{
     height: 2px;
     width: 95%;
-    margin: auto;
+    margin-left: auto;
+    margin-right: auto;
     border-radius: 1px;
     background-color: var(--background-modifier-accent);
     margin-bottom: 20px;

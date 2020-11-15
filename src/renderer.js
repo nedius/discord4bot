@@ -673,18 +673,32 @@ function addChatOp(options){
             }
             case 'input':{
                 let chatContent = document.getElementById('chatContent'),
-                name = document.createElement('span'),
-                input = document.createElement('input'),
-                btn = document.createElement('button'),
-                div = document.createElement('div');
+                    name = document.createElement('span'),
+                    input = document.createElement('input'),
+                    btn = document.createElement('button'),
+                    div = document.createElement('div'),
+                    datalist = document.createElement('datalist'),
+                    optionTag = document.createElement('option')
+                    randomString = Math.random().toString(36).substr(2, 5);
 
                 name.classList.add('channelOptionName');
                 name.innerText = `${option.data}`;
             
                 input.classList.add('channelOptionInput');
                 input.value = option.channel[option.data];
+                if(input.value === '[object Map]' || input.value === '[object Object]') input.value = JSON.stringify(option.channel[option.data]);
                 if(option.method=='' || !option.method) input.readOnly = true;
                 input.type = typeof(option.channel[option.data]);
+                if(option.inputOptions) input.setAttribute('list', `list-${randomString}`);
+
+                if(option.inputOptions){
+                    datalist.id = `list-${randomString}`;
+                    for(op of option.inputOptions){
+                        let temp = optionTag.cloneNode();
+                        temp.innerText = op;
+                        datalist.append(temp);
+                    };
+                }
             
                 btn.classList.add('channelOptionButton');
                 btn.innerText = 'Save';
@@ -716,7 +730,8 @@ function addChatOp(options){
             
                 div.append(name);
                 div.append(input);
-                if((option.method !== '' && option.method !== undefined) || option.data==='id' || option.data==='afkChannelID') div.append(btn);
+                if(option.inputOptions) div.append(datalist);
+                if((option.method !== '' && option.method !== undefined) || option.data === 'id' || option.data === 'afkChannelID') div.append(btn);
             
                 chatContent.append(div);
 
