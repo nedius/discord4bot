@@ -1,6 +1,8 @@
 # Discord4bot
 Discord client for bot account
 
+### _I decided to rewrite the discord4bot on VUE.JS. This will help ease development._
+
 #### Using your person account, not bot account, are against Discord TOS and can result in an account termination! ([link](https://support.discordapp.com/hc/en-us/articles/115002192352-Automated-user-accounts-self-bots-)) USE AT YOUR OWN RISK
 
 ### Feature List
