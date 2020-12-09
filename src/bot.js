@@ -760,6 +760,7 @@ function selectMember(e){
                         {name : 'serverDeaf', method : "setDeaf"},
                         {name : 'serverMute', method : "setMute"},
                         {name : 'voiceChannelID', method : "setVoiceChannel"},
+                        {name : 'joinedAt', method : ""},
     ];
 
     whitelist.has = function(string){
