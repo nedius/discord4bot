@@ -3,6 +3,7 @@ node_modules/
 
 # production
 discord4bot-win32-x64/
+discord4bot_legacy-win32-x64/
 
 # misc
 *.bat

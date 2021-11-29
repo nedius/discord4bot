@@ -1,9 +1,13 @@
 // Modules to control application life and create native browser window
-const {app, BrowserWindow, Menu, MenuItem, Tray} = require('electron')
-const path = require('path')
+const {app, BrowserWindow, Menu, MenuItem, Tray, session} = require('electron');
+const path = require('path');
 
 const Store = require('electron-store');
 const store = new Store();
+const { DefaultOptions } = require('discord.js/src/util/Constants');
+
+const package_name = process.env.npm_package_name,
+      package_version = process.env.npm_package_version;
 
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
@@ -98,6 +102,17 @@ app.on('ready', function() {
     mainWindow.restore();
     mainWindow.focus()
   })
+
+  // change user-agent for api requests
+  session.defaultSession.webRequest.onBeforeSendHeaders((details, callback) => {
+    if(details.url.startsWith(DefaultOptions.http.host)){
+      details.requestHeaders[`User-Agent`] = `DiscordBot (${package_name}, ${package_version})`;
+    }
+    callback({ 
+      cancel: false,
+      requestHeaders: details.requestHeaders 
+    });
+  });
 })
 
 // if second instaance has been launched 

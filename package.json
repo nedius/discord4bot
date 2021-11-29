@@ -1,5 +1,5 @@
 {
-  "name": "discord4bot",
+  "name": "discord4bot_legacy",
   "version": "1.0.0",
   "description": "A minimal discord client for bot",
   "main": "main.js",
